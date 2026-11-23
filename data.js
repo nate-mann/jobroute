@@ -25,11 +25,21 @@ const DEMO = {
 // Services the demo business sells. "minutes" is the typical job length,
 // used when a job is marked done without timer data.
 const SERVICES = [
-  { id: "windows", name: "Window cleaning", minutes: 100, color: "#0f766e" },
-  { id: "gutters", name: "Gutter cleaning", minutes: 70, color: "#2563eb" },
-  { id: "wash",    name: "House wash",      minutes: 150, color: "#d97706" },
-  { id: "deck",    name: "Deck & driveway", minutes: 135, color: "#7c3aed" }
+  { id: "windows", name: "Window cleaning", minutes: 75,  color: "#0f766e" },
+  { id: "gutters", name: "Gutter cleaning", minutes: 55,  color: "#2563eb" },
+  { id: "wash",    name: "House wash",      minutes: 120, color: "#d97706" },
+  { id: "deck",    name: "Deck & driveway", minutes: 100, color: "#7c3aed" }
 ];
+
+// Settings for the route planner (all made-up but realistic).
+const ROUTING = {
+  kmPerMapUnit: 0.2,   // the 100-unit demo map is about 20 km across
+  roadFactor: 1.3,     // roads are longer than a straight line
+  speedKmh: 40,        // average city driving speed with stops
+  costPerKm: 0.6,      // fuel + wear on the truck, dollars per km
+  dayStart: "08:30",   // crews leave the shop at 8:30
+  seasonDays: 110      // working days in one May–October season
+};
 
 // Technicians and how they are paid.
 // commission: share of the job price. hourly: dollars per hour worked.
@@ -78,11 +88,18 @@ const JOBS = [
   { id: 15, date: "2026-07-13", property: "p3",  service: "deck",    tech: "riley",  status: "done", start: "09:00", end: "11:15" },
   { id: 16, date: "2026-07-14", property: "p2",  service: "windows", tech: "riley",  status: "scheduled", note: "Rain delay" },
   { id: 17, date: "2026-07-14", property: "p7",  service: "wash",    tech: "jordan", status: "scheduled", note: "Rain delay" },
+  // Today (Jul 15). Listed in the order the customers booked, which is
+  // how most small crews end up driving them without a route planner.
   { id: 18, date: "2026-07-15", property: "p4",  service: "windows", tech: "jordan", status: "scheduled" },
   { id: 19, date: "2026-07-15", property: "p9",  service: "gutters", tech: "jordan", status: "scheduled" },
   { id: 20, date: "2026-07-15", property: "p12", service: "deck",    tech: "jordan", status: "scheduled" },
-  { id: 21, date: "2026-07-15", property: "p6",  service: "windows", tech: "riley",  status: "scheduled" },
-  { id: 22, date: "2026-07-15", property: "p11", service: "windows", tech: "riley",  status: "scheduled" },
+  { id: 21, date: "2026-07-15", property: "p11", service: "windows", tech: "riley",  status: "scheduled" },
+  { id: 22, date: "2026-07-15", property: "p6",  service: "windows", tech: "riley",  status: "scheduled" },
+  { id: 27, date: "2026-07-15", property: "p8",  service: "windows", tech: "jordan", status: "scheduled" },
+  { id: 28, date: "2026-07-15", property: "p3",  service: "gutters", tech: "jordan", status: "scheduled" },
+  { id: 29, date: "2026-07-15", property: "p10", service: "gutters", tech: "riley",  status: "scheduled" },
+  { id: 30, date: "2026-07-15", property: "p5",  service: "wash",    tech: "riley",  status: "scheduled" },
+  // Later this month
   { id: 23, date: "2026-07-16", property: "p8",  service: "gutters", tech: "riley",  status: "scheduled" },
   { id: 24, date: "2026-07-16", property: "p10", service: "windows", tech: "jordan", status: "scheduled" },
   { id: 25, date: "2026-07-17", property: "p1",  service: "wash",    tech: "riley",  status: "scheduled" },

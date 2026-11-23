@@ -26,6 +26,7 @@
     <nav aria-label="Main">
       <a href="#home">Home</a>
       <a href="#owner">Owner</a>
+      <a href="#route">Routes</a>
       <a href="#tech">Technician</a>
       <a href="#about">About</a>
     </nav>
@@ -120,7 +121,10 @@
           <h1>Good morning, Sam</h1>
           <p class="muted" id="owner-sub"></p>
         </div>
-        <button type="button" class="button small ghost" id="reset-demo">Reset demo data</button>
+        <div class="button-row">
+          <a class="button small" href="#route">Plan today's routes</a>
+          <button type="button" class="button small ghost" id="reset-demo">Reset demo data</button>
+        </div>
       </div>
 
       <div class="kpis" id="kpis"></div>
@@ -191,19 +195,69 @@
     </section>
 
     <!-- =======================================================
-         VIEW 3: TECHNICIAN — today's route and job timer.
+         VIEW 3: ROUTES — today's stops on a map, booking order vs.
+         the shortest order JobRoute finds.
          ======================================================= -->
-    <section id="tech" data-view hidden>
-      <p class="eyebrow">Technician view</p>
-      <h1>Jordan's day</h1>
-      <div class="card">
-        <p>The technician view (today's stops in route order, a start/stop timer for each job and pay earned) is the next part being built.</p>
-        <a class="button secondary" href="#owner">See the owner dashboard instead</a>
+    <section id="route" data-view hidden>
+      <div class="view-head">
+        <div>
+          <p class="eyebrow">Owner view · Route planner</p>
+          <h1>Today's routes</h1>
+          <p class="muted" id="route-sub"></p>
+        </div>
+        <div class="chips" role="group" aria-label="Choose a crew" id="route-crews"></div>
+      </div>
+
+      <div class="route-layout">
+        <div class="card map-card">
+          <div class="map-toolbar">
+            <div class="segmented" role="group" aria-label="Route order">
+              <button type="button" data-mode="booked" aria-pressed="true">Booking order</button>
+              <button type="button" data-mode="optimized" aria-pressed="false">Optimized</button>
+            </div>
+            <button type="button" class="button small" id="optimize-btn">⚡ Optimize route</button>
+          </div>
+          <svg id="route-map" class="route-map" viewBox="0 0 100 100" role="img" aria-label="Map of today's stops"></svg>
+          <p class="muted small map-note">Demo map, not to scale. A real version would use a mapping service for actual roads and traffic.</p>
+        </div>
+
+        <div class="route-side">
+          <div class="card">
+            <h2 id="route-mode-title">Booking order</h2>
+            <p class="muted small" id="route-mode-desc"></p>
+            <div class="route-stats" id="route-stats"></div>
+          </div>
+          <div class="card savings" id="route-savings"></div>
+          <div class="card">
+            <h2>Stops in this order</h2>
+            <ol class="stop-list" id="route-stops"></ol>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- =======================================================
-         VIEW 4: ABOUT — why JobRoute exists.
+         VIEW 4: TECHNICIAN — today's stops, job timer and pay.
+         ======================================================= -->
+    <section id="tech" data-view hidden>
+      <div class="view-head">
+        <div>
+          <p class="eyebrow">Technician view</p>
+          <h1 id="tech-title">Jordan's day</h1>
+          <p class="muted" id="tech-sub"></p>
+        </div>
+        <div class="chips" role="group" aria-label="View as technician" id="tech-picker"></div>
+      </div>
+
+      <div class="kpis" id="tech-kpis"></div>
+
+      <p class="demo-note">⏱ Demo clock: timers run 60× faster, so a 75-minute job takes about 75 seconds. Finished jobs show up on the owner dashboard right away.</p>
+
+      <ol class="tech-stops" id="tech-stops"></ol>
+    </section>
+
+    <!-- =======================================================
+         VIEW 5: ABOUT — why JobRoute exists.
          ======================================================= -->
     <section id="about" data-view hidden>
       <p class="eyebrow">About</p>
