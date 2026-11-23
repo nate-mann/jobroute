@@ -1,26 +1,90 @@
 // ============================================================
-// data.js — ALL the fake data for your prototype lives here.
+// data.js — ALL the fake data for the JobRoute prototype.
 //
-// There is no database. Everything below is made up, and that is
-// on purpose: never put real people's names, emails, phone numbers
-// or addresses in this file.
-//
-// To change what appears on the Explore page, edit LISTINGS.
-// Each item is one card. Keep the same fields (id, name, category,
-// description) or ask Copilot to add new ones everywhere they're needed.
+// There is no database. Everything below is made up: the business
+// (Harbourview Exterior Co.), the people (first names only), the
+// addresses and the prices. No real customers appear anywhere.
 // ============================================================
 
 const STARTUP = {
-  name: "YourStartup",
-  tagline: "One sentence that says what your startup does.",
-  pitch: "Who is your customer, what problem do they have, and why is your solution better than what they use today?"
+  name: "JobRoute",
+  tagline: "Every job, route and dollar for your service business, in one place.",
+  pitch: "JobRoute replaces the spreadsheet, the group chat and the paper notes for owner-operators of window cleaning, lawn care and exterior service crews. Owners see revenue and labour cost for every job on their phone. Technicians see their day, their route and their pay."
 };
 
-const LISTINGS = [
-  { id: 1, name: "Sample listing A", category: "Category 1", description: "A short description of this item." },
-  { id: 2, name: "Sample listing B", category: "Category 2", description: "A short description of this item." },
-  { id: 3, name: "Sample listing C", category: "Category 1", description: "A short description of this item." },
-  { id: 4, name: "Sample listing D", category: "Category 3", description: "A short description of this item." },
-  { id: 5, name: "Sample listing E", category: "Category 2", description: "A short description of this item." },
-  { id: 6, name: "Sample listing F", category: "Category 3", description: "A short description of this item." }
+// The made-up demo business and the "today" the demo pretends it is.
+// (Peak season for exterior services, so the numbers look realistic.)
+const DEMO = {
+  business: "Harbourview Exterior Co.",
+  owner: "Sam",
+  area: "Moncton, Dieppe & Riverview, NB",
+  today: "2026-07-15",
+  monthLabel: "July 2026"
+};
+
+// Services the demo business sells. "minutes" is the typical job length,
+// used when a job is marked done without timer data.
+const SERVICES = [
+  { id: "windows", name: "Window cleaning", minutes: 100, color: "#0f766e" },
+  { id: "gutters", name: "Gutter cleaning", minutes: 70, color: "#2563eb" },
+  { id: "wash",    name: "House wash",      minutes: 150, color: "#d97706" },
+  { id: "deck",    name: "Deck & driveway", minutes: 135, color: "#7c3aed" }
+];
+
+// Technicians and how they are paid.
+// commission: share of the job price. hourly: dollars per hour worked.
+const TECHS = [
+  { id: "jordan", name: "Jordan", pay: { type: "commission", rate: 0.35 }, payLabel: "35% commission" },
+  { id: "riley",  name: "Riley",  pay: { type: "hourly", rate: 22 },       payLabel: "$22 / hour" }
+];
+
+// Customer properties with the price the business charges for each service.
+// x / y place the property on the demo route map (0–100 grid; base = 50, 50).
+const BASE = { name: "Shop", x: 50, y: 52 };
+
+const PROPERTIES = [
+  { id: "p1",  address: "27 Birchmount Dr",     town: "Moncton",   type: "2-storey", x: 34, y: 22, prices: { windows: 210, gutters: 150, wash: 340, deck: 180 } },
+  { id: "p2",  address: "118 Saltmarsh Rd",     town: "Dieppe",    type: "2-storey", x: 82, y: 30, prices: { windows: 235, gutters: 165, wash: 360, deck: 195 } },
+  { id: "p3",  address: "9 Heron Way",          town: "Riverview", type: "Bungalow", x: 22, y: 84, prices: { windows: 160, gutters: 120, wash: 280, deck: 170 } },
+  { id: "p4",  address: "42 Old Mill Ln",       town: "Moncton",   type: "2-storey", x: 18, y: 38, prices: { windows: 225, gutters: 155, wash: 350, deck: 210 } },
+  { id: "p5",  address: "305 Tidewater Ave",    town: "Moncton",   type: "Split-level", x: 56, y: 18, prices: { windows: 195, gutters: 140, wash: 320, deck: 185 } },
+  { id: "p6",  address: "16 Cedar Hollow Crt",  town: "Riverview", type: "2-storey", x: 40, y: 78, prices: { windows: 240, gutters: 170, wash: 375, deck: 220 } },
+  { id: "p7",  address: "88 Lakeview Terr",     town: "Dieppe",    type: "Bungalow", x: 90, y: 54, prices: { windows: 170, gutters: 125, wash: 290, deck: 165 } },
+  { id: "p8",  address: "51 Granite Ridge",     town: "Moncton",   type: "2-storey", x: 28, y: 10, prices: { windows: 255, gutters: 175, wash: 390, deck: 230 } },
+  { id: "p9",  address: "7 Foxglove St",        town: "Riverview", type: "Bungalow", x: 12, y: 70, prices: { windows: 150, gutters: 115, wash: 270, deck: 160 } },
+  { id: "p10", address: "230 Bayberry Blvd",    town: "Dieppe",    type: "Split-level", x: 74, y: 14, prices: { windows: 200, gutters: 145, wash: 330, deck: 190 } },
+  { id: "p11", address: "63 Kingfisher Dr",     town: "Moncton",   type: "2-storey", x: 64, y: 40, prices: { windows: 215, gutters: 150, wash: 345, deck: 200 } },
+  { id: "p12", address: "14 Maplecrest Ave",    town: "Moncton",   type: "Bungalow", x: 46, y: 32, prices: { windows: 165, gutters: 120, wash: 285, deck: 175 } }
+];
+
+// Jobs for the demo month. status: "done" or "scheduled".
+// A scheduled job dated before DEMO.today shows as overdue.
+// Done jobs have start/end times logged by the technician.
+const JOBS = [
+  { id: 1,  date: "2026-07-01", property: "p1",  service: "windows", tech: "jordan", status: "done", start: "09:00", end: "10:30" },
+  { id: 2,  date: "2026-07-01", property: "p5",  service: "gutters", tech: "riley",  status: "done", start: "11:00", end: "12:15" },
+  { id: 3,  date: "2026-07-02", property: "p2",  service: "wash",    tech: "jordan", status: "done", start: "08:30", end: "11:05" },
+  { id: 4,  date: "2026-07-03", property: "p3",  service: "windows", tech: "riley",  status: "done", start: "09:00", end: "10:40" },
+  { id: 5,  date: "2026-07-03", property: "p9",  service: "windows", tech: "riley",  status: "done", start: "11:00", end: "12:20" },
+  { id: 6,  date: "2026-07-06", property: "p4",  service: "deck",    tech: "jordan", status: "done", start: "09:00", end: "11:30" },
+  { id: 7,  date: "2026-07-07", property: "p7",  service: "windows", tech: "jordan", status: "done", start: "08:30", end: "10:15" },
+  { id: 8,  date: "2026-07-07", property: "p10", service: "gutters", tech: "jordan", status: "done", start: "10:45", end: "12:00" },
+  { id: 9,  date: "2026-07-08", property: "p6",  service: "wash",    tech: "riley",  status: "done", start: "09:00", end: "11:45" },
+  { id: 10, date: "2026-07-09", property: "p8",  service: "windows", tech: "jordan", status: "done", start: "09:00", end: "10:50" },
+  { id: 11, date: "2026-07-09", property: "p12", service: "windows", tech: "riley",  status: "done", start: "09:30", end: "11:00" },
+  { id: 12, date: "2026-07-10", property: "p11", service: "gutters", tech: "riley",  status: "done", start: "13:00", end: "14:10" },
+  { id: 13, date: "2026-07-10", property: "p1",  service: "gutters", tech: "jordan", status: "done", start: "13:00", end: "14:00" },
+  { id: 14, date: "2026-07-13", property: "p5",  service: "windows", tech: "jordan", status: "done", start: "08:30", end: "10:30" },
+  { id: 15, date: "2026-07-13", property: "p3",  service: "deck",    tech: "riley",  status: "done", start: "09:00", end: "11:15" },
+  { id: 16, date: "2026-07-14", property: "p2",  service: "windows", tech: "riley",  status: "scheduled", note: "Rain delay" },
+  { id: 17, date: "2026-07-14", property: "p7",  service: "wash",    tech: "jordan", status: "scheduled", note: "Rain delay" },
+  { id: 18, date: "2026-07-15", property: "p4",  service: "windows", tech: "jordan", status: "scheduled" },
+  { id: 19, date: "2026-07-15", property: "p9",  service: "gutters", tech: "jordan", status: "scheduled" },
+  { id: 20, date: "2026-07-15", property: "p12", service: "deck",    tech: "jordan", status: "scheduled" },
+  { id: 21, date: "2026-07-15", property: "p6",  service: "windows", tech: "riley",  status: "scheduled" },
+  { id: 22, date: "2026-07-15", property: "p11", service: "windows", tech: "riley",  status: "scheduled" },
+  { id: 23, date: "2026-07-16", property: "p8",  service: "gutters", tech: "riley",  status: "scheduled" },
+  { id: 24, date: "2026-07-16", property: "p10", service: "windows", tech: "jordan", status: "scheduled" },
+  { id: 25, date: "2026-07-17", property: "p1",  service: "wash",    tech: "riley",  status: "scheduled" },
+  { id: 26, date: "2026-07-20", property: "p5",  service: "deck",    tech: "jordan", status: "scheduled" }
 ];

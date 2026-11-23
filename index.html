@@ -3,21 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>YourStartup</title>
-  <meta name="description" content="A student startup prototype for BSAD 281.">
+  <title>JobRoute</title>
+  <meta name="description" content="JobRoute: routing and job management for small service businesses. A student startup prototype for BSAD 281.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Ccircle cx='9' cy='23' r='3.5' fill='%23fff'/%3E%3Ccircle cx='23' cy='9' r='3.5' fill='%23fbbf24'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
   <!-- =========================================================
-       HEADER: logo text + navigation.
-       Each link points to a "view" further down the page (#home, #explore, #about).
+       HEADER: logo + navigation. Each link opens a "view" below.
        ========================================================= -->
   <header class="site-header">
-    <a class="brand" href="#home" id="brand-name">YourStartup</a>
+    <a class="brand" href="#home">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="currentColor"/>
+        <path d="M8 23c4 0 4-7 8-7s4-7 8-7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.1 4.6"/>
+        <circle cx="8" cy="23" r="2.6" fill="#fff"/>
+        <circle cx="24" cy="9" r="2.6" fill="#fbbf24"/>
+      </svg>
+      <span id="brand-name">JobRoute</span>
+    </a>
     <nav aria-label="Main">
       <a href="#home">Home</a>
-      <a href="#explore">Explore</a>
+      <a href="#owner">Owner</a>
+      <a href="#tech">Technician</a>
       <a href="#about">About</a>
     </nav>
   </header>
@@ -25,59 +34,195 @@
   <main>
 
     <!-- =======================================================
-         VIEW 1: HOME — what you do, for whom, and why it matters.
+         VIEW 1: HOME — what JobRoute does, for whom, and why.
          ======================================================= -->
     <section id="home" data-view>
       <div class="hero">
-        <p class="eyebrow">Prototype</p>
-        <h1 id="tagline">One sentence that says what your startup does.</h1>
-        <p class="lead" id="pitch">
-          Who is your customer, what problem do they have, and why is your
-          solution better than what they use today?
-        </p>
-        <a class="button" href="#explore">See it in action</a>
+        <p class="eyebrow">For small service businesses</p>
+        <h1 id="tagline">Every job, route and dollar for your service business, in one place.</h1>
+        <p class="lead" id="pitch"></p>
+        <div class="button-row">
+          <a class="button" href="#owner">Try the owner demo</a>
+          <a class="button ghost" href="#tech">Try the technician demo</a>
+        </div>
       </div>
 
+      <h2 class="section-title">The problem today</h2>
+      <div class="compare">
+        <div class="card compare-before">
+          <p class="tag">Without JobRoute</p>
+          <ul class="ticks cross">
+            <li>Revenue and expenses typed into a spreadsheet at night</li>
+            <li>Routes planned in your head, so crews double back across town</li>
+            <li>Workers get their day by text message</li>
+            <li>No idea which jobs actually make money after labour</li>
+          </ul>
+        </div>
+        <div class="card compare-after">
+          <p class="tag tag-brand">With JobRoute</p>
+          <ul class="ticks">
+            <li>Every job, price and payment logged as the work happens</li>
+            <li>One tap orders the day's stops into the shortest route</li>
+            <li>Technicians open their day, start and stop each job</li>
+            <li>Profit per job and per crew, live on the owner's phone</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 class="section-title">How it works</h2>
       <div class="steps">
         <div class="card">
-          <h2>1. Step one</h2>
-          <p>Describe the first thing a customer does.</p>
+          <p class="step-num">1</p>
+          <h3>Book the job</h3>
+          <p>Pick the property and service. JobRoute remembers the price you charge at every house.</p>
         </div>
         <div class="card">
-          <h2>2. Step two</h2>
-          <p>Describe what happens next.</p>
+          <p class="step-num">2</p>
+          <h3>Route the day</h3>
+          <p>Each crew gets its stops in the shortest order, with start and stop times logged on site.</p>
         </div>
         <div class="card">
-          <h2>3. Step three</h2>
-          <p>Describe the result the customer gets.</p>
+          <p class="step-num">3</p>
+          <h3>See what you made</h3>
+          <p>Revenue, labour payout and profit for every job add up automatically. No more spreadsheet.</p>
         </div>
+      </div>
+
+      <h2 class="section-title" id="roles">Pick a role to try the demo</h2>
+      <p class="muted">No sign-up. The demo uses a made-up crew, <strong>Harbourview Exterior Co.</strong>, with fake jobs in the Moncton area.</p>
+      <div class="roles">
+        <a class="card role-card" href="#owner">
+          <span class="role-icon" aria-hidden="true">📊</span>
+          <span>
+            <strong>I'm the owner</strong>
+            <span class="muted">Sam · sees revenue, labour cost, profit and every job</span>
+          </span>
+          <span class="role-go" aria-hidden="true">→</span>
+        </a>
+        <a class="card role-card" href="#tech">
+          <span class="role-icon" aria-hidden="true">🧽</span>
+          <span>
+            <strong>I'm a technician</strong>
+            <span class="muted">Jordan · sees today's route, job timer and pay</span>
+          </span>
+          <span class="role-go" aria-hidden="true">→</span>
+        </a>
       </div>
     </section>
 
     <!-- =======================================================
-         VIEW 2: EXPLORE — a list built from the fake data in data.js.
+         VIEW 2: OWNER DASHBOARD — the business at a glance.
          ======================================================= -->
-    <section id="explore" data-view hidden>
-      <h1>Explore</h1>
-      <p class="muted">These examples are fake. They come from <code>data.js</code>.</p>
+    <section id="owner" data-view hidden>
+      <div class="view-head">
+        <div>
+          <p class="eyebrow">Owner view</p>
+          <h1>Good morning, Sam</h1>
+          <p class="muted" id="owner-sub"></p>
+        </div>
+        <button type="button" class="button small ghost" id="reset-demo">Reset demo data</button>
+      </div>
 
-      <label class="search">
-        <span>Search</span>
-        <input type="search" id="search-box" placeholder="Type to filter…">
-      </label>
+      <div class="kpis" id="kpis"></div>
 
-      <p class="muted" id="saved-count"></p>
-      <div class="grid" id="listing-grid"></div>
-      <p class="empty" id="empty-message" hidden>Nothing matches your search.</p>
+      <div class="two-col">
+        <div class="card">
+          <h2>Revenue by service</h2>
+          <p class="muted small">Completed jobs this month</p>
+          <div class="bars" id="service-bars"></div>
+        </div>
+        <div class="card">
+          <h2>Revenue vs. labour by technician</h2>
+          <p class="muted small">Completed jobs this month</p>
+          <div id="tech-split"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-head">
+          <h2>Jobs this month</h2>
+          <div class="chips" role="group" aria-label="Filter jobs">
+            <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
+            <button type="button" class="chip" data-filter="done" aria-pressed="false">Done</button>
+            <button type="button" class="chip" data-filter="scheduled" aria-pressed="false">Scheduled</button>
+            <button type="button" class="chip" data-filter="overdue" aria-pressed="false">Overdue</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="jobs">
+            <thead>
+              <tr>
+                <th>Date</th><th>Property</th><th>Service</th><th>Tech</th>
+                <th class="num">Price</th><th class="num">Labour</th><th class="num">Profit</th>
+                <th>Status</th><th><span class="visually-hidden">Action</span></th>
+              </tr>
+            </thead>
+            <tbody id="job-rows"></tbody>
+          </table>
+        </div>
+        <p class="empty" id="jobs-empty" hidden>No jobs match this filter.</p>
+      </div>
+
+      <div class="card" id="add-job">
+        <h2>Book a job</h2>
+        <p class="muted small">The price fills in from what this property usually pays. Saved on this device only.</p>
+        <form id="job-form" class="form-grid">
+          <label>Property
+            <select id="f-property" required></select>
+          </label>
+          <label>Service
+            <select id="f-service" required></select>
+          </label>
+          <label>Date
+            <input type="date" id="f-date" required>
+          </label>
+          <label>Technician
+            <select id="f-tech" required></select>
+          </label>
+          <label>Price ($)
+            <input type="number" id="f-price" min="0" step="5" required>
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="button">Add job</button>
+          </div>
+        </form>
+        <p class="notice" id="form-msg" role="status" hidden></p>
+      </div>
     </section>
 
     <!-- =======================================================
-         VIEW 3: ABOUT — your team and your story.
+         VIEW 3: TECHNICIAN — today's route and job timer.
+         ======================================================= -->
+    <section id="tech" data-view hidden>
+      <p class="eyebrow">Technician view</p>
+      <h1>Jordan's day</h1>
+      <div class="card">
+        <p>The technician view (today's stops in route order, a start/stop timer for each job and pay earned) is the next part being built.</p>
+        <a class="button secondary" href="#owner">See the owner dashboard instead</a>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         VIEW 4: ABOUT — why JobRoute exists.
          ======================================================= -->
     <section id="about" data-view hidden>
-      <h1>About us</h1>
-      <p>Tell the story of why your team started this company.</p>
-      <p>Use first names only, or no names at all — this site is public.</p>
+      <p class="eyebrow">About</p>
+      <h1>Built from a real season of window cleaning</h1>
+      <p class="lead">JobRoute started with Nate, a student who has run a small exterior cleaning business in New Brunswick since May 2025: 55+ jobs, over $12,000 in revenue and one part-time worker paid on commission.</p>
+      <div class="steps">
+        <div class="card">
+          <h3>The spreadsheet problem</h3>
+          <p>Every sale and expense went into a spreadsheet. It recorded the business but didn't help run it: nothing on the phone, nothing for the worker, no way to see which jobs were worth it.</p>
+        </div>
+        <div class="card">
+          <h3>Who it's for</h3>
+          <p>New and low-budget owner-operators in window cleaning, lawn care and exterior services, with one to five workers, who find big field-service software too expensive and too complicated.</p>
+        </div>
+        <div class="card">
+          <h3>Where it's going</h3>
+          <p>First, use it daily in one real business. Next, test it with a small group of local operators and introduce a simple monthly subscription.</p>
+        </div>
+      </div>
     </section>
 
   </main>
