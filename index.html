@@ -6,8 +6,8 @@
   <title>JobRoute</title>
   <meta name="description" content="JobRoute: routing and job management for small service businesses. A student startup prototype for BSAD 281.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Ccircle cx='9' cy='23' r='3.5' fill='%23fff'/%3E%3Ccircle cx='23' cy='9' r='3.5' fill='%23fbbf24'/%3E%3C/svg%3E">
-  <!-- "?v=3" makes browsers download the newest file after each update -->
-  <link rel="stylesheet" href="styles.css?v=3">
+  <!-- "?v=4" makes browsers download the newest file after each update -->
+  <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 
@@ -46,7 +46,8 @@
         <h1 id="tagline">Every job, route and dollar for your service business, in one place.</h1>
         <p class="lead" id="pitch"></p>
         <div class="button-row">
-          <a class="button" href="#owner">Try the owner demo</a>
+          <button type="button" class="button" data-tour-start>▶ Take the 60-second tour</button>
+          <a class="button ghost" href="#owner">Try the owner demo</a>
           <a class="button ghost" href="#tech">Try the technician demo</a>
         </div>
       </div>
@@ -227,9 +228,18 @@
               <button type="button" data-mode="booked" aria-pressed="true">Booking order</button>
               <button type="button" data-mode="optimized" aria-pressed="false">Optimized</button>
             </div>
-            <button type="button" class="button small" id="optimize-btn">⚡ Optimize route</button>
+            <div class="map-actions">
+              <button type="button" class="button small ghost" id="drive-btn">🚚 Replay drive</button>
+              <button type="button" class="button small" id="optimize-btn">⚡ Optimize route</button>
+            </div>
           </div>
-          <svg id="route-map" class="route-map" viewBox="0 0 100 100" role="img" aria-label="Map of today's stops"></svg>
+          <div class="map-frame">
+            <svg id="route-map" class="route-map" viewBox="0 0 100 100" role="img" aria-label="Map of today's stops"></svg>
+            <div class="map-clock" id="map-clock" hidden>
+              <strong id="map-clock-time"></strong>
+              <span id="map-clock-what"></span>
+            </div>
+          </div>
           <p class="muted small map-note">Demo map, not to scale. A real version would use a mapping service for actual roads and traffic.</p>
         </div>
 
@@ -316,11 +326,21 @@
         <div class="kpis" id="net-kpis"></div>
 
         <div class="net-bottom">
-          <div>
+          <div class="net-map-wrap">
+            <h3 class="small-h">Live map: JobRoute crews in the area</h3>
+            <svg id="net-map" class="net-map" viewBox="0 0 100 100" role="img" aria-label="Map of JobRoute crews in the Moncton area, with jobs being passed between nearby crews"></svg>
+            <div class="net-legend">
+              <span><i class="lg lg-you"></i>You (Harbourview)</span>
+              <span><i class="lg lg-op"></i>Other JobRoute crews</span>
+              <span><i class="lg lg-job"></i>A job being passed on</span>
+            </div>
+            <p class="small muted net-map-note" id="net-map-note"></p>
+          </div>
+          <div class="net-right">
             <h3 class="small-h">Chance your overflow job gets claimed</h3>
             <svg id="net-chart" class="net-chart" viewBox="0 0 220 110" role="img" aria-label="Chart: chance a posted job is claimed, by number of operators"></svg>
+            <p class="net-verdict" id="net-verdict"></p>
           </div>
-          <p class="net-verdict" id="net-verdict"></p>
         </div>
       </div>
 
@@ -427,13 +447,28 @@
 
   </main>
 
+  <!-- Guided tour: a small card that walks a visitor through the demo. -->
+  <div class="tour" id="tour" role="dialog" aria-labelledby="tour-title" hidden>
+    <div class="tour-top">
+      <span class="tour-step" id="tour-step"></span>
+      <button type="button" class="tour-close" id="tour-close" aria-label="End the tour">✕</button>
+    </div>
+    <div class="tour-progress" aria-hidden="true"><span id="tour-bar"></span></div>
+    <h2 id="tour-title"></h2>
+    <p id="tour-text"></p>
+    <div class="tour-actions">
+      <button type="button" class="button small ghost" id="tour-back">Back</button>
+      <button type="button" class="button small" id="tour-next">Next</button>
+    </div>
+  </div>
+
   <!-- Keep this footer. Your site must say it is a student project. -->
   <footer class="site-footer">
     <p>Student prototype for BSAD 281 at St. Francis Xavier University. Not a real company — all data is fictional.</p>
   </footer>
 
   <!-- Scripts load in this order: data first, then the code that uses it. -->
-  <script src="data.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="data.js?v=4"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

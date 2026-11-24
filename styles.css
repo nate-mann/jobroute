@@ -438,6 +438,37 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .map-pin text { font-size: 3.2px; font-weight: 750; fill: var(--text); }
 .map-pin.done circle { fill: var(--good-soft); stroke: var(--good); }
 .map-pin.done text { fill: var(--good); }
+.map-pin circle, .map-pin text { transition: fill 0.25s, stroke 0.25s; }
+.map-pin.visited circle { fill: var(--brand); stroke: var(--brand-dark); }
+.map-pin.visited text { fill: #fff; }
+
+/* Route map: the clock that rides along with the truck */
+.map-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.map-frame { position: relative; }
+.map-clock {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  max-width: calc(100% - 20px);
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: rgba(22, 32, 42, 0.86);
+  color: #fff;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+.map-clock strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.map-clock span { opacity: 0.85; }
+
+/* The truck */
+.truck-box { fill: var(--accent); stroke: #b45309; stroke-width: 0.3; }
+.truck-cab { fill: var(--text); }
+.truck-wheel { fill: var(--text); stroke: #fff; stroke-width: 0.35; }
 
 .route-stats {
   display: grid;
@@ -463,6 +494,9 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .stop-list { margin: 10px 0 0; padding-left: 22px; }
 .stop-list li { padding: 6px 0; border-bottom: 1px solid var(--border); }
 .stop-list li:last-child { border-bottom: none; }
+.stop-list li { transition: background 0.3s; }
+.stop-list li.reached { background: var(--brand-soft); }
+.stop-list li.reached .stop-time::after { content: " ✓"; color: var(--brand); font-weight: 700; }
 .stop-list li > span:first-child { display: inline; }
 .stop-time { float: right; font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-left: 8px; }
 
@@ -550,11 +584,51 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 
 .net-bottom {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 20px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
   margin-top: 8px;
 }
+.net-right .net-verdict { margin-top: 14px !important; }
+
+/* Network page: live map of crews */
+.net-map { display: block; width: 100%; height: auto; border-radius: 10px; }
+.net-link { stroke: var(--brand); stroke-width: 0.45; stroke-opacity: 0.35; }
+.net-op circle {
+  fill: var(--brand);
+  stroke: #fff;
+  stroke-width: 0.7;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1), opacity 0.25s;
+}
+.net-op.on circle { transform: scale(1); opacity: 1; }
+.net-op.you circle { fill: var(--text); }
+.net-you-label { font-size: 3px; font-weight: 750; fill: var(--text); }
+.net-job { fill: var(--accent); stroke: #fff; stroke-width: 0.4; }
+.net-ping {
+  fill: none;
+  stroke-width: 0.8;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: net-ping 0.9s ease-out forwards;
+}
+.net-ping.good { stroke: var(--brand); }
+.net-ping.bad { stroke: var(--bad); }
+@keyframes net-ping {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(3.2); opacity: 0; }
+}
+.net-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 0.8rem; color: var(--muted); }
+.net-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.lg { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.lg-you { background: var(--text); }
+.lg-op { background: var(--brand); }
+.lg-job { background: var(--accent); }
+.net-map-note { margin: 6px 0 0; min-height: 2.6em; }
+.net-map-wrap.tour-target { background: var(--surface); padding: 8px; }
 .small-h { font-size: 0.9rem; margin: 6px 0 4px; color: var(--muted); font-weight: 600; }
 .net-chart { width: 100%; height: auto; display: block; }
 .chart-grid { stroke: var(--border); stroke-width: 0.5; }
@@ -678,7 +752,6 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
   /* Route planner stacks: map on top, details below */
   .map-toolbar .segmented { flex: 1; }
   .map-toolbar .segmented button { flex: 1; }
-  .map-toolbar .button { width: 100%; }
 
   /* Technician stops: timer and buttons drop under the details */
   .tech-stop { grid-template-columns: auto minmax(0, 1fr); }
@@ -695,4 +768,60 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 @media (max-width: 860px) {
   .route-layout { grid-template-columns: 1fr; }
   .net-bottom { grid-template-columns: 1fr; }
+}
+
+/* ---------- Guided tour ---------- */
+.tour {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 30;
+  width: min(380px, calc(100vw - 32px));
+  padding: 14px 18px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(16, 24, 32, 0.22);
+}
+.tour-top { display: flex; align-items: center; justify-content: space-between; }
+.tour-step { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--brand); }
+.tour-close {
+  font: inherit;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tour-close:hover { background: var(--background); color: var(--text); }
+.tour-progress { height: 4px; margin: 8px 0 10px; border-radius: 4px; background: var(--brand-soft); overflow: hidden; }
+.tour-progress span { display: block; height: 100%; width: 0; background: var(--brand); transition: width 0.3s ease; }
+.tour h2 { font-size: 1.08rem; margin: 0 0 6px; }
+.tour p { margin: 0 0 14px; font-size: 0.93rem; color: var(--text); }
+.tour-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.tour-target {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 9px rgba(245, 158, 11, 0.16);
+  transition: outline-color 0.2s;
+}
+/* leave room at the bottom so the tour card doesn't cover the page end */
+body.touring main { padding-bottom: 240px; }
+
+@media (max-width: 640px) {
+  .tour { left: 12px; right: 12px; bottom: 12px; width: auto; padding: 12px 14px 14px; }
+  .tour p { font-size: 0.88rem; margin-bottom: 10px; }
+  .map-actions { width: 100%; }
+  .map-actions .button { flex: 1; }
+  .map-clock { right: 6px; bottom: 6px; padding: 5px 9px; font-size: 0.72rem; }
+  .map-clock strong { font-size: 0.98rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .net-op circle, .tour-progress span, .map-pin circle, .map-pin text { transition: none; }
 }

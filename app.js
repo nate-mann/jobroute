@@ -134,6 +134,12 @@
     }));
   }
 
+  // People who turn on "reduce motion" on their device get the
+  // same information without the moving parts.
+  function reduceMotion() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
   // ----------------------------------------------------------
   // 3. The business maths for one job.
   //    price  — what the customer pays (from the property's price list)
@@ -314,6 +320,9 @@
         link.removeAttribute("aria-current");
       }
     });
+
+    if (current !== "route") stopDrive();
+    if (current !== "network") stopNetLoop();
 
     if (current === "owner") renderOwner();
     if (current === "route") renderRoute(true);
@@ -605,12 +614,14 @@
       svg("path", { d: "M0,60 C20,56 38,66 55,62 S80,64 100,72", class: "map-water" }),
       svg("text", { x: 3, y: 30, class: "map-label" }, "MONCTON"),
       svg("text", { x: 92, y: 40, class: "map-label", "text-anchor": "middle" }, "DIEPPE"),
-      svg("text", { x: 70, y: 95, class: "map-label", "text-anchor": "middle" }, "RIVERVIEW"),
+      svg("text", { x: 36, y: 95, class: "map-label", "text-anchor": "middle" }, "RIVERVIEW"),
       svg("text", { x: 76, y: 75, class: "map-river-label", "text-anchor": "middle" }, "river")
     );
   }
 
   function renderRoute(animate) {
+    stopDrive();
+    document.getElementById("map-clock").hidden = true;
     const tech = byId(TECHS, routeTech);
     const booked = todaysJobs(routeTech);
     const optimized = bestOrder(booked);
@@ -736,6 +747,12 @@
       li.append(text, el("span", "stop-time", niceTime(stop.arrive)));
       return li;
     }));
+
+    // After the line has drawn itself, send the truck around the loop
+    lastDrive = { order: order, plan: plan };
+    if (animate && order.length && !reduceMotion()) {
+      driveDelay = setTimeout(function () { driveRoute(order, plan); }, 1500);
+    }
   }
 
   document.querySelectorAll("#route .segmented button").forEach(function (btn) {
@@ -747,6 +764,123 @@
   document.getElementById("optimize-btn").addEventListener("click", function () {
     routeMode = "optimized";
     renderRoute(true);
+  });
+
+  // --- The truck: drives the route on the map, stop by stop, with a
+  //     clock showing the time of day. Driving and jobs are sped up
+  //     (a job takes well under a second), so the whole day plays in
+  //     about 8 seconds.
+  let lastDrive = null;
+  let driveDelay = null;
+  let driveFrame = null;
+
+  function stopDrive() {
+    clearTimeout(driveDelay);
+    cancelAnimationFrame(driveFrame);
+    const old = document.querySelector("#route-map .truck");
+    if (old) old.remove();
+  }
+
+  function makeTruck() {
+    const truck = svg("g", { class: "truck" });
+    const body = svg("g", { class: "truck-body" });
+    body.append(
+      svg("rect", { x: -3.4, y: -3.6, width: 4.4, height: 3, rx: 0.5, class: "truck-box" }),
+      svg("path", { d: "M1.2,-2.9 h1.4 l1.2,1.3 v1.3 h-2.6 z", class: "truck-cab" }),
+      svg("circle", { cx: -2, cy: -0.4, r: 0.75, class: "truck-wheel" }),
+      svg("circle", { cx: 2.3, cy: -0.4, r: 0.75, class: "truck-wheel" })
+    );
+    truck.append(body);
+    return truck;
+  }
+
+  function driveRoute(order, plan) {
+    stopDrive();
+    const map = document.getElementById("route-map");
+    const pins = map.querySelectorAll(".map-pin");
+    const items = document.getElementById("route-stops").children;
+    const clock = document.getElementById("map-clock");
+    const clockTime = document.getElementById("map-clock-time");
+    const clockWhat = document.getElementById("map-clock-what");
+    const truck = makeTruck();
+    const body = truck.firstChild;
+    map.append(truck);
+
+    // Build the day as a list of phases: drive, job, drive, job ... drive home
+    const points = [BASE].concat(order.map(spot)).concat([BASE]);
+    const phases = [];
+    let t = 0;
+    let dayClock = toMin(ROUTING.dayStart);
+    for (let i = 0; i < points.length - 1; i++) {
+      const km = legKm(points[i], points[i + 1]);
+      const atStop = i < order.length;
+      const arrive = atStop ? plan.stops[i].arrive : plan.finish;
+      const driveMs = 450 + km * 75;
+      phases.push({ kind: "drive", from: points[i], to: points[i + 1], start: t, ms: driveMs,
+        clockFrom: dayClock, clockTo: arrive, stop: i });
+      t += driveMs;
+      if (atStop) {
+        const jobMs = 700;
+        const leave = arrive + plan.stops[i].length;
+        phases.push({ kind: "job", from: points[i + 1], to: points[i + 1], start: t, ms: jobMs,
+          clockFrom: arrive, clockTo: leave, stop: i });
+        t += jobMs;
+        dayClock = leave;
+      }
+    }
+    const total = t;
+
+    function place(x, y, facingLeft) {
+      truck.setAttribute("transform", "translate(" + x.toFixed(2) + "," + y.toFixed(2) + ")");
+      body.setAttribute("transform", facingLeft ? "scale(-1,1)" : "");
+    }
+
+    clock.hidden = false;
+    let begin = null;
+    let reached = -1;
+    let facingLeft = false;
+
+    function frame(now) {
+      if (begin === null) begin = now;
+      const elapsed = now - begin;
+      const phase = phases.find(function (p) { return elapsed < p.start + p.ms; }) || phases[phases.length - 1];
+      const k = Math.min(1, Math.max(0, (elapsed - phase.start) / phase.ms));
+      const eased = phase.kind === "drive" ? k * k * (3 - 2 * k) : k; // speed up, then slow down
+      if (phase.to.x !== phase.from.x) facingLeft = phase.to.x < phase.from.x;
+      place(phase.from.x + (phase.to.x - phase.from.x) * eased, phase.from.y + (phase.to.y - phase.from.y) * eased, facingLeft);
+      clockTime.textContent = niceTime(phase.clockFrom + (phase.clockTo - phase.clockFrom) * k);
+
+      const stopCount = order.length;
+      if (phase.kind === "job") {
+        clockWhat.textContent = "Stop " + (phase.stop + 1) + " of " + stopCount + " · " +
+          byId(SERVICES, order[phase.stop].service).name;
+        if (reached < phase.stop) {
+          reached = phase.stop;
+          if (pins[phase.stop]) pins[phase.stop].classList.add("visited");
+          if (items[phase.stop]) items[phase.stop].classList.add("reached");
+        }
+      } else if (phase.stop < stopCount) {
+        clockWhat.textContent = "Driving to stop " + (phase.stop + 1) + " of " + stopCount;
+      } else {
+        clockWhat.textContent = "Driving back to the shop";
+      }
+
+      if (elapsed < total) {
+        driveFrame = requestAnimationFrame(frame);
+      } else {
+        clockTime.textContent = niceTime(plan.finish);
+        clockWhat.textContent = "Back at the shop · " + plan.km.toFixed(1) + " km driven";
+      }
+    }
+    driveFrame = requestAnimationFrame(frame);
+  }
+
+  document.getElementById("drive-btn").addEventListener("click", function () {
+    if (!lastDrive || !lastDrive.order.length) return;
+    // clear the ticks from the last drive, then go again
+    document.querySelectorAll("#route-map .map-pin.visited").forEach(function (pin) { pin.classList.remove("visited"); });
+    Array.prototype.forEach.call(document.getElementById("route-stops").children, function (li) { li.classList.remove("reached"); });
+    driveRoute(lastDrive.order, lastDrive.plan);
   });
 
   // ----------------------------------------------------------
@@ -1031,6 +1165,7 @@
       note: "Overflow from " + post.from
     });
     claimed.push(post.id);
+    passJob(crewIndex(post.from), 0);
     saveJobs();
     storage.set(CLAIMED_KEY, claimed);
     renderFeed(operators);
@@ -1072,11 +1207,13 @@
       if (nums.others === 0) {
         result.className = "post-result bad";
         result.textContent = "✕ There's no one else on the network yet, so nobody can take it. The customer finds someone else. Move the slider up and try again.";
+        loseJob(0);
         return;
       }
       if (Math.random() < nums.claimChance) {
         const crew = FICTIONAL_CREWS[Math.floor(Math.random() * Math.min(FICTIONAL_CREWS.length, nums.others))];
         const hours = nums.hoursToClaim * (0.5 + Math.random());
+        passJob(0, crewIndex(crew));
         result.className = "post-result good";
         result.textContent = "✓ Claimed by " + crew + " in about " + waitText(hours) +
           ". Your customer still gets served, and you earn " + money(fee) + " (10%) without lifting a ladder.";
@@ -1084,9 +1221,199 @@
         result.className = "post-result bad";
         result.textContent = "✕ Nobody claimed it in 48 hours. With only " + nums.others + " other operator" +
           (nums.others === 1 ? "" : "s") + " nearby, the customer goes elsewhere. Try again with more operators.";
+        loseJob(0);
       }
     }, 1200);
   });
+
+  // --- Live network map -------------------------------------
+  // Operator 0 is you (Harbourview's shop). The others are spread
+  // around town in a fixed "random" pattern, so the map looks the
+  // same every visit. Moving the slider switches crews on or off.
+  // The first five have names so jobs on the page match the map.
+  const NAMED_CREWS = FICTIONAL_CREWS.concat(["Northgate Lawn Crew"]);
+
+  function riverY(x) {
+    // rough height of the river at a point across the map
+    const pts = [[0, 60], [25, 60], [55, 62], [80, 65], [100, 72]];
+    for (let i = 1; i < pts.length; i++) {
+      if (x <= pts[i][0]) {
+        const a = pts[i - 1], b = pts[i];
+        return a[1] + (b[1] - a[1]) * (x - a[0]) / (b[0] - a[0]);
+      }
+    }
+    return 72;
+  }
+
+  // keep crews off the town names on the map: [left, top, right, bottom]
+  const NAME_BOXES = [[0, 24, 30, 34], [80, 34, 100, 44], [22, 88, 50, 100], [66, 70, 86, 79]];
+
+  const OPERATOR_SPOTS = (function () {
+    let seed = 11;
+    function rand() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    const spots = [{ x: BASE.x, y: BASE.y }];
+    for (let tries = 0; spots.length < NETWORK.maxOperators && tries < 6000; tries++) {
+      const p = { x: 6 + rand() * 88, y: 6 + rand() * 84 };
+      if (Math.abs(p.y - riverY(p.x)) < 6) continue;
+      if (NAME_BOXES.some(function (r) { return p.x > r[0] && p.x < r[2] && p.y > r[1] && p.y < r[3]; })) continue;
+      if (spots.some(function (q) { return Math.hypot(p.x - q.x, p.y - q.y) < 8.5; })) continue;
+      spots.push(p);
+    }
+    return spots;
+  })();
+
+  let netNodes = [];
+  let netLinks = null;
+  let netFlows = null;
+  let netNeighbours = [];
+  let netLoop = null;
+  let netCount = { covered: 0, lost: 0 };
+
+  function crewName(i) {
+    if (i === 0) return "You: " + DEMO.business;
+    return NAMED_CREWS[i - 1] || "JobRoute crew #" + (i + 1);
+  }
+
+  function buildNetMap() {
+    const map = document.getElementById("net-map");
+    map.replaceChildren();
+    drawBaseMap(map);
+    netLinks = svg("g", {});
+    const nodes = svg("g", {});
+    netFlows = svg("g", {});
+    netNodes = OPERATOR_SPOTS.map(function (p, i) {
+      const node = svg("g", { class: "net-op" + (i === 0 ? " you" : "") });
+      node.append(
+        svg("title", {}, crewName(i)),
+        svg("circle", { cx: p.x, cy: p.y, r: i === 0 ? 3 : 2 })
+      );
+      if (i === 0) node.append(svg("text", { x: p.x, y: p.y - 4.4, "text-anchor": "middle", class: "net-you-label" }, "You"));
+      nodes.append(node);
+      return node;
+    });
+    map.append(netLinks, nodes, netFlows);
+  }
+
+  // Each crew is joined to its 2 closest crews on the network:
+  // close enough to cover each other's jobs.
+  function updateNetMap(n) {
+    if (!netNodes.length) buildNetMap();
+    netNodes.forEach(function (node, i) { node.classList.toggle("on", i < n); });
+    netNeighbours = [];
+    const lines = [];
+    const seen = {};
+    for (let i = 0; i < n; i++) {
+      const near = [];
+      for (let j = 0; j < n; j++) if (j !== i) near.push(j);
+      near.sort(function (a, b) { return dist(i, a) - dist(i, b); });
+      netNeighbours[i] = near.slice(0, 3);
+      near.slice(0, 2).forEach(function (j) {
+        const key = Math.min(i, j) + "-" + Math.max(i, j);
+        if (seen[key]) return;
+        seen[key] = true;
+        const a = OPERATOR_SPOTS[i], b = OPERATOR_SPOTS[j];
+        lines.push(svg("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: "net-link" }));
+      });
+    }
+    netLinks.replaceChildren.apply(netLinks, lines);
+    netCount = { covered: 0, lost: 0 };
+    updateNetNote(n);
+  }
+
+  function dist(i, j) {
+    const a = OPERATOR_SPOTS[i], b = OPERATOR_SPOTS[j];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  function updateNetNote(n) {
+    const note = document.getElementById("net-map-note");
+    if (n === 1) {
+      note.textContent = "Only you on the map: no one to pass a job to, and no one passing jobs to you.";
+      return;
+    }
+    const watched = netCount.covered + netCount.lost;
+    note.textContent = n + " crews connected. " + (watched
+      ? "While you watched: " + netCount.covered + " job" + (netCount.covered === 1 ? "" : "s") + " covered, " +
+        netCount.lost + " customer" + (netCount.lost === 1 ? "" : "s") + " lost."
+      : "Watch the amber dots: each one is a job a crew couldn't take.");
+  }
+
+  // A small ring that flashes at a crew's spot
+  function pingAt(i, kind) {
+    const p = OPERATOR_SPOTS[i];
+    const ring = svg("circle", { cx: p.x, cy: p.y, r: 2, class: "net-ping " + kind });
+    netFlows.append(ring);
+    setTimeout(function () { ring.remove(); }, 900);
+  }
+
+  // Animate one job travelling from crew i to crew j
+  function passJob(i, j) {
+    if (!netFlows) return;
+    const a = OPERATOR_SPOTS[i], b = OPERATOR_SPOTS[j];
+    const dot = svg("circle", { cx: a.x, cy: a.y, r: 1.4, class: "net-job" });
+    netFlows.append(dot);
+    const ms = 700 + dist(i, j) * 14;
+    let begin = null;
+    function step(now) {
+      if (begin === null) begin = now;
+      const k = Math.min(1, (now - begin) / ms);
+      const e = k * k * (3 - 2 * k);
+      dot.setAttribute("cx", (a.x + (b.x - a.x) * e).toFixed(2));
+      dot.setAttribute("cy", (a.y + (b.y - a.y) * e).toFixed(2));
+      if (k < 1) {
+        requestAnimationFrame(step);
+      } else {
+        dot.remove();
+        pingAt(j, "good");
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  // A job that nobody could take: it fades out where it was posted
+  function loseJob(i) {
+    if (!netFlows) return;
+    pingAt(i, "bad");
+  }
+
+  // Background activity: crews post jobs now and then. Whether one gets
+  // covered uses the same claim chance as the numbers above.
+  function randomPost() {
+    const n = operators;
+    if (n < 2 || !netNodes.length) return;
+    const from = Math.floor(Math.random() * n);
+    if (Math.random() < networkNumbers(n).claimChance) {
+      const options = netNeighbours[from] || [];
+      const to = options[Math.floor(Math.random() * options.length)];
+      if (to === undefined) return;
+      passJob(from, to);
+      netCount.covered++;
+    } else {
+      loseJob(from);
+      netCount.lost++;
+    }
+    updateNetNote(n);
+  }
+
+  function stopNetLoop() {
+    clearInterval(netLoop);
+    netLoop = null;
+  }
+
+  function startNetLoop() {
+    stopNetLoop();
+    if (operators < 2 || reduceMotion()) return;
+    // more crews = more jobs flying around
+    netLoop = setInterval(randomPost, Math.max(320, 2200 - operators * 50));
+  }
+
+  // The map spot of a named crew (or a random crew nearby if that
+  // crew hasn't joined at the current slider setting)
+  function crewIndex(name) {
+    const i = NAMED_CREWS.indexOf(name) + 1;
+    if (i > 0 && i < operators) return i;
+    return operators > 1 ? 1 + Math.floor(Math.random() * (operators - 1)) : 0;
+  }
 
   function renderNetwork() {
     const n = operators;
@@ -1104,6 +1431,8 @@
     );
 
     document.getElementById("net-verdict").textContent = verdictText(n, nums);
+    updateNetMap(n);
+    if (currentView() === "network") startNetLoop();
     drawNetworkChart(n);
     renderFeed(n);
     fillPostSelect();
@@ -1158,7 +1487,181 @@
   });
 
   // ----------------------------------------------------------
-  // 12. Start up.
+  // 12. Guided tour: a 9-step walk through the demo. Each step opens
+  //     a view, sets it up, and outlines the part being explained.
+  // ----------------------------------------------------------
+  function tourRouteSaving() {
+    const booked = todaysJobs("jordan");
+    const saved = routeKm(booked) - routeKm(bestOrder(booked));
+    return saved.toFixed(0) + " km and " + Math.round(driveMinutes(saved)) + " minutes";
+  }
+
+  const TOUR = [
+    {
+      view: "home", target: "#home .hero",
+      title: "JobRoute in 60 seconds",
+      text: function () {
+        return "One app for a small exterior-cleaning crew: the owner's jobs and revenue, the best route for each day, " +
+          "a timer and pay for every technician, and a network for passing on jobs. Everything uses a made-up crew and fake data.";
+      }
+    },
+    {
+      view: "owner", target: "#kpis",
+      title: "The owner's numbers, no spreadsheet",
+      text: function () {
+        return "Sam, the owner, sees what the month earned, what labour cost and the profit left over. " +
+          "Jordan is paid 35% commission and Riley $22 an hour, and JobRoute works out both.";
+      }
+    },
+    {
+      view: "owner", target: "#owner .table-wrap",
+      title: "Every job in one list",
+      text: function () {
+        return "Filter by done, scheduled or overdue. Press “Mark done” on a job and the numbers above update straight away.";
+      }
+    },
+    {
+      view: "route", target: "#route .map-frame", self: true,
+      enter: function () { routeTech = "jordan"; routeMode = "booked"; },
+      title: "The day as it's planned now",
+      text: function () {
+        return "Jordan's crew, driving today's stops in the order customers booked them. Watch the truck zig-zag back and forth across the river.";
+      }
+    },
+    {
+      view: "route", target: "#route .map-frame", self: true,
+      enter: function () { routeTech = "jordan"; routeMode = "optimized"; },
+      title: "⚡ The shortest route",
+      text: function () {
+        return "JobRoute tests every possible order of the stops and picks the shortest loop. For Jordan's crew that saves " +
+          tourRouteSaving() + " today, and the crew is home earlier.";
+      }
+    },
+    {
+      view: "tech", target: "#tech-stops",
+      title: "The technician's day",
+      text: function () {
+        return "Each technician sees their stops in route order with arrival times. “Start job” runs a timer, " +
+          "“Finish job” logs the time and pay, and the owner's dashboard updates by itself.";
+      }
+    },
+    {
+      view: "network", target: ".net-map-wrap", self: true,
+      enter: function () { operators = NETWORK.startOperators; },
+      after: function () { growNetwork(20); },
+      title: "The network effect: Overflow Network",
+      text: function () {
+        return "Crews pass on jobs they can't take. Watch the map fill up: with " + NETWORK.startOperators + " crews, " +
+          Math.round(networkNumbers(NETWORK.startOperators).claimChance * 100) + "% of passed jobs get covered. With 20 crews it's " +
+          Math.round(networkNumbers(20).claimChance * 100) + "%. Every crew that joins makes it worth more to all the others.";
+      }
+    },
+    {
+      view: "network", target: "#feed",
+      title: "Pick up other crews' jobs",
+      text: function () {
+        return "Claim a job another crew can't take and it lands on Jordan's schedule. The crew doing the work keeps 85%, " +
+          "the crew that passed it on earns 10%, and JobRoute takes 5%.";
+      }
+    },
+    {
+      view: "pricing", target: ".plan",
+      title: "How JobRoute makes money",
+      text: function () {
+        return money(PRICING.base) + " a month including the owner, plus " + money(PRICING.perTech) +
+          " for each technician, and 5% of every overflow job. That's the tour. Everything on the site is clickable, so try it yourself.";
+      }
+    }
+  ];
+
+  const tourBox = document.getElementById("tour");
+  let tourStep = -1;
+  let tourTimer = null;
+  let tourHighlight = null;
+
+  // Tour step 7: slide the network from a few crews up to 20
+  function growNetwork(target) {
+    clearInterval(tourTimer);
+    if (reduceMotion()) { operators = target; renderNetwork(); return; }
+    tourTimer = setInterval(function () {
+      if (operators >= target) { clearInterval(tourTimer); return; }
+      operators++;
+      renderNetwork();
+    }, 160);
+  }
+
+  function clearHighlight() {
+    if (tourHighlight) tourHighlight.classList.remove("tour-target");
+    tourHighlight = null;
+  }
+
+  function showTourStep(index) {
+    clearInterval(tourTimer);
+    clearHighlight();
+    tourStep = index;
+    const step = TOUR[index];
+    if (step.enter) step.enter();
+
+    // Open the view (or redraw it if we're already there)
+    if (window.location.hash !== "#" + step.view) {
+      window.location.hash = step.view;
+    } else {
+      showView();
+    }
+
+    document.getElementById("tour-step").textContent = "Step " + (index + 1) + " of " + TOUR.length;
+    document.getElementById("tour-bar").style.width = ((index + 1) / TOUR.length * 100) + "%";
+    document.getElementById("tour-title").textContent = step.title;
+    document.getElementById("tour-text").textContent = step.text();
+    document.getElementById("tour-back").disabled = index === 0;
+    document.getElementById("tour-next").textContent = index === TOUR.length - 1 ? "Finish" : "Next";
+
+    // Wait a moment for the view to draw, then outline the part we're talking about
+    setTimeout(function () {
+      if (tourStep !== index) return;
+      const found = document.querySelector(step.target);
+      if (!found) return;
+      tourHighlight = step.self ? found : (found.closest(".card") || found);
+      tourHighlight.classList.add("tour-target");
+      const header = document.querySelector(".site-header").offsetHeight;
+      const top = tourHighlight.getBoundingClientRect().top + window.scrollY - header - 12;
+      window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion() ? "auto" : "smooth" });
+      if (step.after) step.after();
+    }, 120);
+  }
+
+  function startTour() {
+    tourBox.hidden = false;
+    document.body.classList.add("touring");
+    showTourStep(0);
+    document.getElementById("tour-next").focus();
+  }
+
+  function endTour() {
+    clearInterval(tourTimer);
+    clearHighlight();
+    tourStep = -1;
+    tourBox.hidden = true;
+    document.body.classList.remove("touring");
+  }
+
+  document.querySelectorAll("[data-tour-start]").forEach(function (btn) {
+    btn.addEventListener("click", startTour);
+  });
+  document.getElementById("tour-next").addEventListener("click", function () {
+    if (tourStep >= TOUR.length - 1) endTour();
+    else showTourStep(tourStep + 1);
+  });
+  document.getElementById("tour-back").addEventListener("click", function () {
+    if (tourStep > 0) showTourStep(tourStep - 1);
+  });
+  document.getElementById("tour-close").addEventListener("click", endTour);
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && tourStep !== -1) endTour();
+  });
+
+  // ----------------------------------------------------------
+  // 13. Start up.
   // ----------------------------------------------------------
   showView();
 })();

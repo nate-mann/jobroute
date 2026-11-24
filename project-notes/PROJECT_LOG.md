@@ -6,6 +6,8 @@
 
 AI tool used to build the site: Claude Code (an AI coding assistant), running on my Mac. I described what I wanted and checked the results; it wrote the HTML, CSS and JavaScript. I used GitHub Desktop to push commits to GitHub.
 
+On Nov 24 I emailed my professor to ask if using Claude Code instead of Copilot was okay. He said yes, as long as the site wasn't made in one shot and had several commits from iterating, and that he'd expect it to be nicer given what Claude can do.
+
 ---
 
 ## Work sessions
@@ -69,6 +71,25 @@ AI tool used to build the site: Claude Code (an AI coding assistant), running on
   - On a phone, the menu now had 7 links and only the first 4 fit. Network, Pricing and About were hidden off the side of the screen. The AI made the menu wrap onto two rows on small screens.
 - **Committed?** yes — "Session 3: Overflow Network simulation, pricing page and cache fix"
 
+### Session 4 — Nov 24 (second sitting, evening) — driver: Nate
+
+- **Goal for this session:** My professor said he'd expect a nicer site since I'm using Claude, so make the demo more impressive and easier to follow: show the network effect happening on a map, show the route being driven, and add a guided tour so a visitor sees every feature.
+- **Key prompts / decisions I gave the AI:**
+  1. "So what else should we do today? I have a lot of time today." The AI suggested five upgrades and I went with its top three: a live network map, a truck that drives the route, and a 60-second tour.
+  2. "Yes, start session 4."
+- **What worked:**
+  - **Live network map (Network page):** a map of Moncton/Dieppe/Riverview with a dot for every JobRoute crew. Moving the slider adds or removes crews, and each crew is joined to its closest neighbours. Amber dots show jobs being passed between crews. Whether a job gets covered uses the same claim chance as the numbers on the page, so with 3 crews you see lots of red "customer lost" flashes, and with 25 crews almost every job gets picked up. A counter keeps score: jobs covered vs. customers lost.
+  - Posting one of my jobs or claiming one from the feed now also shows the job moving on the map, to or from the crew that took it.
+  - **Truck on the Routes page:** after the route line draws, a truck drives it stop by stop. A clock shows the time of day (8:30 am leaving the shop, back at 3:37 pm on the optimized route) and each stop gets a check mark when it's reached. You can watch the booking order zig-zag and then the optimized loop. "Replay drive" runs it again.
+  - **60-second guided tour:** a "Take the 60-second tour" button on the home page walks through 9 steps: owner numbers, the jobs list, booking order vs. optimized route, the technician's day, the network map filling up from 3 to 20 crews, claiming overflow jobs, and pricing. Each step opens the right page and outlines the part it's talking about. The numbers in the tour come from the demo itself, so they stay correct.
+  - People who turn on "reduce motion" on their device get the same information without the animations.
+  - Changed "?v=3" to "?v=4" so browsers load the new files.
+- **What broke, and how we fixed it:**
+  - The truck's clock box sat in the top corner of the map and covered stop 2. The AI moved it to the empty bottom corner and moved the "Riverview" label so they don't overlap.
+  - Some crew dots on the network map landed on top of the town names. The AI made the dots avoid the labels.
+  - On a phone, the tour card covered the bottom half of the map it was talking about. The tour now outlines just the map on those steps, so it fits above the card.
+- **Committed?** yes — "Session 4: live network map, truck route animation and guided tour"
+
 ---
 
 ## Things that broke (running list)
@@ -83,6 +104,9 @@ AI tool used to build the site: Claude Code (an AI coding assistant), running on
 | Nov 23 | Live Routes page looked broken right after pushing session 2 | Checked GitHub had the new file (it did) | Browser was using its old saved stylesheet; hard refresh, then added "?v=3" to the file links (Nov 24) |
 | Nov 24 | A lawn company "claimed" a gutter job it couldn't do | — | Only exterior-cleaning companies can claim posted jobs now |
 | Nov 24 | Network, Pricing and About links hidden on phones | — | Menu wraps onto two rows on small screens |
+| Nov 24 | Truck's clock box covered a stop on the map | — | Moved the clock to an empty corner and moved the Riverview label |
+| Nov 24 | Network map dots on top of town names | — | Dots now avoid the labels |
+| Nov 24 | Tour card covered the map on phones | Scrolling the page | Tour outlines just the map on those steps so both fit on screen |
 
 ## What a real version would need
 
