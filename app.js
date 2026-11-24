@@ -318,6 +318,8 @@
     if (current === "owner") renderOwner();
     if (current === "route") renderRoute(true);
     if (current === "tech") renderTech();
+    if (current === "network") renderNetwork();
+    if (current === "pricing") renderPricing();
 
     window.scrollTo(0, 0);
   }
@@ -428,7 +430,8 @@
 
     const body = document.getElementById("job-rows");
     body.replaceChildren.apply(body, rows.map(function (job) {
-      const property = byId(PROPERTIES, job.property) || { address: "Unknown", town: "" };
+      // Overflow jobs claimed from other crews carry their own address
+      const property = byId(PROPERTIES, job.property) || { address: job.address || "Unknown", town: job.town || "" };
       const service = byId(SERVICES, job.service) || { name: job.service };
       const tech = byId(TECHS, job.tech) || { name: "—" };
       const state = jobState(job);
@@ -883,7 +886,279 @@
   });
 
   // ----------------------------------------------------------
-  // 10. Start up.
+  // 10. Overflow Network: the network-effect simulation.
+  //     A simple model: each other operator nearby has a small chance
+  //     of being able to take any given job. More operators = a much
+  //     better chance that SOMEONE can, plus more jobs to pick up.
+  // ----------------------------------------------------------
+  const CLAIMED_KEY = "jobroute.claimed.v1";
+  let operators = NETWORK.startOperators;
+  let claimed = storage.get(CLAIMED_KEY, []);
+  let postTimer = null;
+
+  function networkNumbers(n) {
+    const others = Math.max(0, n - 1);
+    const claimChance = 1 - Math.pow(1 - NETWORK.chanceEachCanTake, others);
+    const hoursToClaim = others > 0 ? NETWORK.hoursToClaimBase / others : Infinity;
+    const canPickUp = others * NETWORK.postsPerMonth * NETWORK.matchRate;
+    const turnedAway = NETWORK.postsPerMonth * NETWORK.seasonMonths;
+    const covered = turnedAway * claimChance;
+    const referral = covered * NETWORK.avgJobPrice * NETWORK.split.sender;
+    return {
+      others: others,
+      claimChance: claimChance,
+      hoursToClaim: hoursToClaim,
+      canPickUp: canPickUp,
+      turnedAway: turnedAway,
+      covered: covered,
+      referral: referral
+    };
+  }
+
+  function waitText(hours) {
+    if (!isFinite(hours)) return "Never";
+    if (hours >= 24) return (hours / 24).toFixed(1).replace(".0", "") + " days";
+    if (hours >= 1) return Math.round(hours) + " h";
+    return Math.round(hours * 60) + " min";
+  }
+
+  function verdictText(n, nums) {
+    if (n === 1) {
+      return "With only you on the network, there's no one to pass a job to and nothing to pick up. That's the cold-start problem, and it's why JobRoute launches one area at a time.";
+    }
+    if (n <= 5) {
+      return "A few operators help a little, but most posted jobs still go unclaimed (" + Math.round((1 - nums.claimChance) * 100) +
+        "% don't get picked up). The network isn't worth much yet.";
+    }
+    if (n <= 15) {
+      return "Now most posted jobs get claimed within hours, and there's steady extra work to pick up. Every new operator still makes a big difference.";
+    }
+    return "Almost every job gets covered, usually within an hour or two. Each new operator adds less now, but an operator who leaves loses all of this. That makes JobRoute hard to switch away from.";
+  }
+
+  function drawNetworkChart(n) {
+    const chart = document.getElementById("net-chart");
+    chart.replaceChildren();
+    const x = function (ops) { return 24 + ((ops - 1) / (NETWORK.maxOperators - 1)) * 186; };
+    const y = function (share) { return 92 - share * 80; };
+
+    [0, 0.5, 1].forEach(function (share) {
+      chart.append(
+        svg("line", { x1: 24, x2: 210, y1: y(share), y2: y(share), class: "chart-grid" }),
+        svg("text", { x: 20, y: y(share) + 1.5, class: "chart-axis", "text-anchor": "end" }, Math.round(share * 100) + "%")
+      );
+    });
+    [1, 10, 20, 30, 40].forEach(function (ops) {
+      chart.append(svg("text", { x: x(ops), y: 104, class: "chart-axis", "text-anchor": "middle" }, String(ops)));
+    });
+
+    let d = "";
+    for (let ops = 1; ops <= NETWORK.maxOperators; ops++) {
+      d += (ops === 1 ? "M" : "L") + x(ops).toFixed(1) + "," + y(networkNumbers(ops).claimChance).toFixed(1) + " ";
+    }
+    chart.append(svg("path", { d: d, class: "chart-line" }));
+
+    const share = networkNumbers(n).claimChance;
+    chart.append(
+      svg("line", { x1: x(n), x2: x(n), y1: 92, y2: y(share), class: "chart-marker-line" }),
+      svg("circle", { cx: x(n), cy: y(share), r: 3.2, class: "chart-marker" }),
+      svg("text", {
+        x: Math.min(Math.max(x(n), 40), 196), y: Math.max(y(share) - 6, 8),
+        class: "chart-marker-label", "text-anchor": "middle"
+      }, Math.round(share * 100) + "%")
+    );
+  }
+
+  function renderFeed(n) {
+    const others = n - 1;
+    const visible = Math.min(OVERFLOW_FEED.length, Math.round(others * 0.35));
+    document.getElementById("feed-sub").textContent = others === 0
+      ? "No other operators nearby yet, so there's nothing to pick up."
+      : visible + " open job" + (visible === 1 ? "" : "s") + " from " + others + " other crew" +
+        (others === 1 ? "" : "s") + " nearby, matching your services and area.";
+
+    const feed = document.getElementById("feed");
+    if (visible === 0) {
+      const empty = el("li", "feed-empty", "Move the slider up to add operators to the area.");
+      feed.replaceChildren(empty);
+      return;
+    }
+
+    feed.replaceChildren.apply(feed, OVERFLOW_FEED.slice(0, visible).map(function (post) {
+      const service = byId(SERVICES, post.service);
+      const keep = post.price * (1 - NETWORK.split.sender - NETWORK.split.jobroute);
+      const li = el("li", "feed-item");
+
+      const top = el("div", "feed-top");
+      top.append(
+        el("strong", "", service.name + " · " + post.town),
+        el("span", "feed-price", money(post.price))
+      );
+      const meta = el("p", "feed-meta",
+        post.address + " · " + dayName(post.date) + " " + shortDate(post.date) + " · " + post.km.toFixed(1) + " km from your shop");
+      const from = el("p", "feed-from", "Posted by " + post.from + ": " + post.reason.toLowerCase());
+
+      const bottom = el("div", "feed-bottom");
+      bottom.append(el("span", "stop-pay", "You'd keep " + money(keep) + " (85%)"));
+      if (claimed.indexOf(post.id) !== -1) {
+        bottom.append(el("span", "status done", "Claimed ✓ on Jordan's schedule"));
+      } else {
+        const btn = el("button", "button small", "Claim job");
+        btn.type = "button";
+        btn.addEventListener("click", function () { claimPost(post); });
+        bottom.append(btn);
+      }
+
+      li.append(top, meta, from, bottom);
+      return li;
+    }));
+  }
+
+  // Claiming adds the job to Harbourview's own schedule (and the owner
+  // dashboard), at the 85% the claiming crew keeps.
+  function claimPost(post) {
+    if (claimed.indexOf(post.id) !== -1) return;
+    const nextId = jobs.reduce(function (max, job) { return Math.max(max, job.id); }, 0) + 1;
+    jobs.push({
+      id: nextId,
+      date: post.date,
+      address: post.address,
+      town: post.town,
+      service: post.service,
+      tech: "jordan",
+      status: "scheduled",
+      price: Math.round(post.price * (1 - NETWORK.split.sender - NETWORK.split.jobroute)),
+      note: "Overflow from " + post.from
+    });
+    claimed.push(post.id);
+    saveJobs();
+    storage.set(CLAIMED_KEY, claimed);
+    renderFeed(operators);
+  }
+
+  function fillPostSelect() {
+    const select = document.getElementById("post-job");
+    const upcoming = jobs
+      .filter(function (job) { return job.status !== "done" && job.date > DEMO.today && byId(PROPERTIES, job.property); })
+      .sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    const previous = select.value;
+    select.replaceChildren.apply(select, upcoming.map(function (job) {
+      const property = byId(PROPERTIES, job.property);
+      const option = el("option", "", shortDate(job.date) + " · " + byId(SERVICES, job.service).name + " · " +
+        property.address + " (" + money(jobPrice(job)) + ")");
+      option.value = String(job.id);
+      return option;
+    }));
+    if (previous) select.value = previous;
+  }
+
+  // Crews that could claim YOUR job: exterior cleaning companies only
+  // (the lawn crew in the feed has no ladders, so it can't).
+  const FICTIONAL_CREWS = ["Saltmarsh Exterior", "Crestline Wash Co.", "Fundy Clear Windows", "Tideline Property Care"];
+
+  document.getElementById("post-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+    const job = jobs.find(function (j) { return String(j.id) === document.getElementById("post-job").value; });
+    if (!job) return;
+    const result = document.getElementById("post-result");
+    const nums = networkNumbers(operators);
+    const fee = jobPrice(job) * NETWORK.split.sender;
+
+    result.className = "post-result waiting";
+    result.textContent = "Posted to " + nums.others + " nearby operator" + (nums.others === 1 ? "" : "s") + "… waiting for a claim.";
+    clearTimeout(postTimer);
+
+    postTimer = setTimeout(function () {
+      if (nums.others === 0) {
+        result.className = "post-result bad";
+        result.textContent = "✕ There's no one else on the network yet, so nobody can take it. The customer finds someone else. Move the slider up and try again.";
+        return;
+      }
+      if (Math.random() < nums.claimChance) {
+        const crew = FICTIONAL_CREWS[Math.floor(Math.random() * Math.min(FICTIONAL_CREWS.length, nums.others))];
+        const hours = nums.hoursToClaim * (0.5 + Math.random());
+        result.className = "post-result good";
+        result.textContent = "✓ Claimed by " + crew + " in about " + waitText(hours) +
+          ". Your customer still gets served, and you earn " + money(fee) + " (10%) without lifting a ladder.";
+      } else {
+        result.className = "post-result bad";
+        result.textContent = "✕ Nobody claimed it in 48 hours. With only " + nums.others + " other operator" +
+          (nums.others === 1 ? "" : "s") + " nearby, the customer goes elsewhere. Try again with more operators.";
+      }
+    }, 1200);
+  });
+
+  function renderNetwork() {
+    const n = operators;
+    const nums = networkNumbers(n);
+    document.getElementById("net-slider").value = String(n);
+    document.getElementById("net-count").textContent = String(n);
+
+    const kpis = document.getElementById("net-kpis");
+    kpis.replaceChildren(
+      kpiCard("Your overflow gets claimed", Math.round(nums.claimChance * 100) + "%", "Chance someone can take a posted job", n === 1),
+      kpiCard("Typical wait for a claim", waitText(nums.hoursToClaim), nums.others + " other operator" + (nums.others === 1 ? "" : "s") + " nearby"),
+      kpiCard("Jobs you could pick up", nums.canPickUp.toFixed(1) + " / month", "Other crews' overflow that suits you"),
+      kpiCard("Customers kept per season", Math.round(nums.covered) + " of " + nums.turnedAway,
+        money(nums.referral) + " in referral fees")
+    );
+
+    document.getElementById("net-verdict").textContent = verdictText(n, nums);
+    drawNetworkChart(n);
+    renderFeed(n);
+    fillPostSelect();
+  }
+
+  document.getElementById("net-slider").addEventListener("input", function (event) {
+    operators = Number(event.target.value);
+    renderNetwork();
+  });
+
+  // ----------------------------------------------------------
+  // 11. Pricing calculator.
+  // ----------------------------------------------------------
+  function renderPricing() {
+    const slider = document.getElementById("price-slider");
+    const techs = Number(slider.value);
+    const crews = Math.max(1, Math.ceil((techs + 1) / 2)); // people usually work in pairs
+    const cost = PRICING.base + PRICING.perTech * techs;
+    const adminSaving = PRICING.adminHoursSaved * PRICING.ownerHourValue * 4.33;
+    const routeSaving = PRICING.routeKmSavedPerCrewDay * PRICING.workDaysPerMonth * ROUTING.costPerKm * crews;
+    const net = adminSaving + routeSaving - cost;
+
+    document.getElementById("price-techs").textContent = String(techs);
+
+    const lines = [
+      ["JobRoute plan (owner included)", money(PRICING.base)],
+      [techs + " technician" + (techs === 1 ? "" : "s") + " × " + money(PRICING.perTech), money(PRICING.perTech * techs)],
+      ["Total per month", money(cost), "total"],
+      ["Owner time saved (~" + PRICING.adminHoursSaved + " h/week of spreadsheets)", "+" + money(adminSaving), "save"],
+      ["Less driving (" + crews + " crew" + (crews === 1 ? "" : "s") + ", ~" + PRICING.routeKmSavedPerCrewDay + " km/day each)", "+" + money(routeSaving), "save"],
+      ["Estimated benefit after paying for JobRoute", money(net) + " / month", "net"]
+    ];
+    const box = document.getElementById("price-lines");
+    box.replaceChildren.apply(box, lines.map(function (line) {
+      const row = el("div", "price-line" + (line[2] ? " " + line[2] : ""));
+      row.append(el("span", "", line[0]), el("strong", "", line[1]));
+      return row;
+    }));
+
+    document.getElementById("price-note").textContent =
+      "Savings are rough estimates: owner time valued at " + money(PRICING.ownerHourValue) + "/hour, driving at " +
+      money(ROUTING.costPerKm * 100) + " per 100 km. A crew of " + (techs + 1) + " pays " +
+      money(cost * 12) + " a year.";
+  }
+
+  document.getElementById("price-slider").addEventListener("input", renderPricing);
+
+  // Reset also clears claimed overflow jobs
+  document.getElementById("reset-demo").addEventListener("click", function () {
+    claimed = [];
+    storage.remove(CLAIMED_KEY);
+  });
+
+  // ----------------------------------------------------------
+  // 12. Start up.
   // ----------------------------------------------------------
   showView();
 })();

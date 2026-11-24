@@ -502,6 +502,134 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .button.finish:hover { background: #92400e; border-color: #92400e; }
 .button:disabled { opacity: 0.45; cursor: not-allowed; }
 
+/* ---------- Home teaser ---------- */
+.teaser {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+  text-decoration: none;
+  color: var(--text);
+  background: linear-gradient(120deg, var(--brand-soft), var(--surface) 70%);
+  border-color: var(--brand);
+}
+.teaser strong { display: block; font-size: 1.05rem; }
+.teaser .muted { display: block; font-size: 0.92rem; }
+.teaser-icon {
+  flex: none;
+  width: 48px; height: 48px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--surface); font-size: 1.5rem;
+}
+
+/* ---------- Overflow Network ---------- */
+.hero-tight { padding-top: 8px; padding-bottom: 20px; }
+.steps-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 16px; }
+.steps > .card + .card { margin-top: 0; }
+.split-bar {
+  display: flex;
+  height: 22px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 4px 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+.split-bar span { display: grid; place-items: center; }
+.sb-doer { background: var(--brand); }
+.sb-sender { background: var(--accent); }
+.sb-jr { background: var(--text); }
+
+.sim { margin-bottom: 16px; }
+.slider-label { display: block; margin: 14px 0 6px; font-weight: 600; }
+.slider-label strong { font-size: 1.3rem; color: var(--brand); }
+.slider { width: 100%; accent-color: var(--brand); height: 28px; cursor: pointer; }
+.slider-scale { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin: -2px 2px 16px; }
+.sim .kpis { margin-bottom: 8px; }
+
+.net-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+  margin-top: 8px;
+}
+.small-h { font-size: 0.9rem; margin: 6px 0 4px; color: var(--muted); font-weight: 600; }
+.net-chart { width: 100%; height: auto; display: block; }
+.chart-grid { stroke: var(--border); stroke-width: 0.5; }
+.chart-axis { font-size: 6px; fill: var(--muted); }
+.chart-line { fill: none; stroke: var(--brand); stroke-width: 2; stroke-linejoin: round; }
+.chart-marker { fill: var(--accent); stroke: var(--surface); stroke-width: 1.2; }
+.chart-marker-line { stroke: var(--accent); stroke-width: 0.8; stroke-dasharray: 2 2; }
+.chart-marker-label { font-size: 7px; font-weight: 750; fill: var(--text); }
+.net-verdict {
+  margin: 0 !important;
+  padding: 14px 16px;
+  border-left: 4px solid var(--brand);
+  background: var(--brand-soft);
+  border-radius: 0 10px 10px 0;
+  font-weight: 500;
+}
+
+.feed { list-style: none; margin: 12px 0 0; padding: 0; }
+.feed-item { padding: 12px 0; border-top: 1px solid var(--border); }
+.feed-item:first-child { border-top: none; padding-top: 4px; }
+.feed-top { display: flex; justify-content: space-between; gap: 10px; }
+.feed-price { font-weight: 750; }
+.feed-meta { margin: 2px 0 0 !important; font-size: 0.88rem; color: var(--muted); }
+.feed-from { margin: 2px 0 8px !important; font-size: 0.85rem; color: var(--muted); font-style: italic; }
+.feed-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.feed-empty { padding: 18px; text-align: center; color: var(--muted); background: var(--background); border-radius: 10px; font-style: italic; }
+
+.post-form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.post-form label { display: flex; flex-direction: column; gap: 4px; font-size: 0.88rem; font-weight: 600; }
+.post-form select {
+  font: inherit; font-weight: 400;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+}
+.post-result:empty { display: none; }
+.post-result { margin-top: 12px; padding: 12px 14px; border-radius: 10px; font-weight: 600; font-size: 0.92rem; }
+.post-result.waiting { background: var(--info-soft); color: var(--info); }
+.post-result.good { background: var(--good-soft); color: var(--good); }
+.post-result.bad { background: var(--bad-soft); color: var(--bad); }
+
+/* ---------- Pricing ---------- */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.pricing-grid > .card + .card { margin-top: 0; }
+.plan { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand) inset; }
+.plan-price { margin: 10px 0 4px !important; font-size: 1.05rem; color: var(--muted); }
+.plan-price span { font-size: 2.6rem; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
+.plan .ticks { margin: 14px 0 18px; }
+.plan-note { margin-top: 12px !important; }
+.price-lines { margin: 14px 0 10px; }
+.price-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+.price-line strong { white-space: nowrap; }
+.price-line.total { font-weight: 700; border-bottom: 2px solid var(--text); }
+.price-line.save strong { color: var(--good); }
+.price-line.net { border-bottom: none; margin-top: 6px; padding: 10px 12px; border-radius: 10px; background: var(--brand-soft); font-weight: 700; }
+.price-line.net strong { color: var(--brand); font-size: 1.05rem; }
+.fee-example { margin: 12px 0; max-width: 460px; }
+.fee-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.fee-row:last-child { border-bottom: none; }
+
 /* ---------- Footer ---------- */
 .site-footer {
   border-top: 1px solid var(--border);
@@ -514,7 +642,8 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 /* ---------- Small screens (phones) ---------- */
 @media (max-width: 640px) {
   .site-header { padding: 10px 16px; }
-  nav { width: 100%; margin: 0 -4px; }
+  nav { width: 100%; margin: 0 -4px; flex-wrap: wrap; overflow: visible; gap: 2px; }
+  nav a { padding: 5px 10px; font-size: 0.95rem; }
   main { padding: 18px 16px 48px; }
   .kpis { grid-template-columns: 1fr 1fr; }
   .kpi-value { font-size: 1.35rem; }
@@ -565,4 +694,5 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 
 @media (max-width: 860px) {
   .route-layout { grid-template-columns: 1fr; }
+  .net-bottom { grid-template-columns: 1fr; }
 }

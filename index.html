@@ -6,7 +6,8 @@
   <title>JobRoute</title>
   <meta name="description" content="JobRoute: routing and job management for small service businesses. A student startup prototype for BSAD 281.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Ccircle cx='9' cy='23' r='3.5' fill='%23fff'/%3E%3Ccircle cx='23' cy='9' r='3.5' fill='%23fbbf24'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css">
+  <!-- "?v=3" makes browsers download the newest file after each update -->
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 
@@ -28,6 +29,8 @@
       <a href="#owner">Owner</a>
       <a href="#route">Routes</a>
       <a href="#tech">Technician</a>
+      <a href="#network">Network</a>
+      <a href="#pricing">Pricing</a>
       <a href="#about">About</a>
     </nav>
   </header>
@@ -88,6 +91,15 @@
           <p>Revenue, labour payout and profit for every job add up automatically. No more spreadsheet.</p>
         </div>
       </div>
+
+      <a class="card teaser" href="#network">
+        <span class="teaser-icon" aria-hidden="true">🤝</span>
+        <span>
+          <strong>Booked solid? Pass the job on.</strong>
+          <span class="muted">The Overflow Network lets you hand a job you can't take to a nearby JobRoute crew and earn 10%. The more crews join, the faster every job gets covered.</span>
+        </span>
+        <span class="role-go" aria-hidden="true">→</span>
+      </a>
 
       <h2 class="section-title" id="roles">Pick a role to try the demo</h2>
       <p class="muted">No sign-up. The demo uses a made-up crew, <strong>Harbourview Exterior Co.</strong>, with fake jobs in the Moncton area.</p>
@@ -257,7 +269,141 @@
     </section>
 
     <!-- =======================================================
-         VIEW 5: ABOUT — why JobRoute exists.
+         VIEW 5: OVERFLOW NETWORK — the network effect, simulated.
+         ======================================================= -->
+    <section id="network" data-view hidden>
+      <div class="hero hero-tight">
+        <p class="eyebrow">Overflow Network · the network effect</p>
+        <h1>Can't take a job? Pass it to a crew nearby.</h1>
+        <p class="lead">Booked solid, rained out, or asked for a service you don't offer? Post the job to the Overflow Network in one tap. A nearby JobRoute crew claims it, your customer still gets served, and you earn 10%.</p>
+      </div>
+
+      <div class="steps steps-4">
+        <div class="card">
+          <p class="step-num">1</p>
+          <h3>Post it</h3>
+          <p>The address, service, price and date are already in JobRoute, so posting takes one tap.</p>
+        </div>
+        <div class="card">
+          <p class="step-num">2</p>
+          <h3>Nearby crews see it</h3>
+          <p>Only operators with that service, close by, with a free slot on that day.</p>
+        </div>
+        <div class="card">
+          <p class="step-num">3</p>
+          <h3>One claims it</h3>
+          <p>The first crew to claim it gets the job on their route. The customer is told who's coming.</p>
+        </div>
+        <div class="card">
+          <p class="step-num">4</p>
+          <h3>Everyone gets paid</h3>
+          <div class="split-bar" aria-label="Fee split">
+            <span class="sb-doer" style="width:85%">85%</span><span class="sb-sender" style="width:10%"></span><span class="sb-jr" style="width:5%"></span>
+          </div>
+          <p class="small muted">85% to the crew that does it · 10% to you · 5% to JobRoute</p>
+        </div>
+      </div>
+
+      <div class="card sim">
+        <h2>Watch each operator's value grow as more operators join</h2>
+        <p class="muted small">Drag the slider. All numbers are a simple model with made-up assumptions, for one crew in the Moncton area.</p>
+        <label class="slider-label" for="net-slider">
+          JobRoute operators in the Moncton area: <strong id="net-count">3</strong>
+        </label>
+        <input type="range" id="net-slider" class="slider" min="1" max="40" step="1" value="3">
+        <div class="slider-scale" aria-hidden="true"><span>1</span><span>10</span><span>20</span><span>30</span><span>40</span></div>
+
+        <div class="kpis" id="net-kpis"></div>
+
+        <div class="net-bottom">
+          <div>
+            <h3 class="small-h">Chance your overflow job gets claimed</h3>
+            <svg id="net-chart" class="net-chart" viewBox="0 0 220 110" role="img" aria-label="Chart: chance a posted job is claimed, by number of operators"></svg>
+          </div>
+          <p class="net-verdict" id="net-verdict"></p>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <h2>Overflow jobs near you</h2>
+          <p class="muted small" id="feed-sub"></p>
+          <ul class="feed" id="feed"></ul>
+        </div>
+        <div class="card">
+          <h2>Pass on one of your jobs</h2>
+          <p class="muted small">Pick an upcoming Harbourview job you can't fit in and post it to the network. Whether it gets claimed depends on how many operators are in the area (the slider above).</p>
+          <form id="post-form" class="post-form">
+            <label>Job to pass on
+              <select id="post-job"></select>
+            </label>
+            <button type="submit" class="button">Post to network</button>
+          </form>
+          <div id="post-result" class="post-result" role="status"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Why it's a network effect, and why it's local</h2>
+        <ul class="ticks">
+          <li><strong>Same-side:</strong> every operator both posts jobs and picks them up. Each new crew in town makes the network more useful for every crew already in it.</li>
+          <li><strong>Local:</strong> a new crew in Halifax doesn't help a crew in Moncton. The network has to be built town by town.</li>
+          <li><strong>Starting from empty:</strong> launch in one area at a time (Moncton, Dieppe and Riverview first), with operators the founder already knows. The founder's own crew posts its overflow from day one, so there are jobs to claim before anyone else joins.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         VIEW 6: PRICING — how JobRoute makes money.
+         ======================================================= -->
+    <section id="pricing" data-view hidden>
+      <div class="hero hero-tight">
+        <p class="eyebrow">Pricing</p>
+        <h1>One simple plan, priced for small crews.</h1>
+        <p class="lead">Big field-service software is built for companies with dispatchers and office staff. JobRoute is priced for an owner who still does the jobs.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <div class="card plan">
+          <p class="tag tag-brand">JobRoute plan</p>
+          <p class="plan-price"><span>$29</span> / month</p>
+          <p class="muted">Includes the owner account. Add <strong>$10 / month</strong> for each technician.</p>
+          <ul class="ticks">
+            <li>Job, price and revenue tracking for every property</li>
+            <li>Route optimizer for every crew, every day</li>
+            <li>Technician app with job timer and automatic pay</li>
+            <li>Owner dashboard: profit per job, service and crew</li>
+            <li>Overflow Network: pass jobs on and pick jobs up</li>
+          </ul>
+          <a class="button" href="#owner">Try the demo</a>
+          <p class="muted small plan-note">Prices in CAD. This is a prototype: there's no real sign-up or payment.</p>
+        </div>
+
+        <div class="card">
+          <h2>What would it cost you?</h2>
+          <label class="slider-label" for="price-slider">
+            Technicians (besides the owner): <strong id="price-techs">2</strong>
+          </label>
+          <input type="range" id="price-slider" class="slider" min="0" max="10" step="1" value="2">
+          <div class="price-lines" id="price-lines"></div>
+          <p class="muted small" id="price-note"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Overflow Network fees</h2>
+        <p class="muted small">There's no fee to post or claim. When an overflow job is done, the price is split automatically. Example: a $200 window job.</p>
+        <div class="fee-example">
+          <div class="fee-row"><span>Crew that does the job (85%)</span><strong>$170</strong></div>
+          <div class="fee-row"><span>Business that passed it on (10%)</span><strong>$20</strong></div>
+          <div class="fee-row"><span>JobRoute (5%)</span><strong>$10</strong></div>
+        </div>
+        <p class="muted small">JobRoute earns from subscriptions plus 5% of overflow jobs, so the more the network grows, the more it earns.</p>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         VIEW 7: ABOUT — why JobRoute exists.
          ======================================================= -->
     <section id="about" data-view hidden>
       <p class="eyebrow">About</p>
@@ -287,7 +433,7 @@
   </footer>
 
   <!-- Scripts load in this order: data first, then the code that uses it. -->
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

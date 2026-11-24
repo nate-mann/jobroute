@@ -105,3 +105,42 @@ const JOBS = [
   { id: 25, date: "2026-07-17", property: "p1",  service: "wash",    tech: "riley",  status: "scheduled" },
   { id: 26, date: "2026-07-20", property: "p5",  service: "deck",    tech: "jordan", status: "scheduled" }
 ];
+
+// ------------------------------------------------------------
+// OVERFLOW NETWORK — made-up numbers for the network-effect demo.
+// ------------------------------------------------------------
+const NETWORK = {
+  startOperators: 3,      // slider starting point
+  maxOperators: 40,
+  chanceEachCanTake: 0.12, // chance any one nearby operator has the right service AND a free slot
+  postsPerMonth: 4,       // overflow jobs a typical crew turns away each peak month
+  matchRate: 0.15,        // share of other operators' posts that suit YOUR services and area
+  avgJobPrice: 210,
+  seasonMonths: 6,
+  hoursToClaimBase: 36,   // with one other operator, a post waits ~36 h
+  split: { sender: 0.10, jobroute: 0.05 } // the crew doing the job keeps the rest (85%)
+};
+
+// Other (fictional) JobRoute operators and the overflow jobs they've posted.
+// The slider decides how many of these are visible: more operators, more posts.
+const OVERFLOW_FEED = [
+  { id: "o1", from: "Northgate Lawn Crew",   service: "windows", address: "12 Juniper Crt",    town: "Moncton",   date: "2026-07-16", price: 220, km: 3.1, reason: "Lawn company: doesn't do windows" },
+  { id: "o2", from: "Saltmarsh Exterior",    service: "gutters", address: "401 Pointe Rd",     town: "Dieppe",    date: "2026-07-17", price: 160, km: 5.4, reason: "Booked solid this week" },
+  { id: "o3", from: "Crestline Wash Co.",    service: "deck",    address: "6 Alder Bend",      town: "Riverview", date: "2026-07-16", price: 195, km: 4.8, reason: "Pressure washer in for repair" },
+  { id: "o4", from: "Fundy Clear Windows",   service: "windows", address: "77 Ridgeback Dr",   town: "Moncton",   date: "2026-07-18", price: 245, km: 2.6, reason: "Crew member off sick" },
+  { id: "o5", from: "Tideline Property Care",service: "wash",    address: "18 Oakhurst Ave",   town: "Dieppe",    date: "2026-07-20", price: 330, km: 6.2, reason: "Too far from their other jobs" },
+  { id: "o6", from: "Northgate Lawn Crew",   service: "gutters", address: "250 Millcreek Rd",  town: "Moncton",   date: "2026-07-21", price: 150, km: 3.9, reason: "Lawn company: no ladders" }
+];
+
+// ------------------------------------------------------------
+// PRICING — the plan JobRoute sells (CAD).
+// ------------------------------------------------------------
+const PRICING = {
+  base: 29,          // per month: owner account + everything
+  perTech: 10,       // per month for each technician
+  // Rough monthly savings used by the pricing calculator
+  adminHoursSaved: 3, // owner hours per week no longer spent on spreadsheets
+  ownerHourValue: 25,
+  routeKmSavedPerCrewDay: 12,
+  workDaysPerMonth: 22
+};

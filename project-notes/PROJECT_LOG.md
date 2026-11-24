@@ -48,6 +48,27 @@ AI tool used to build the site: Claude Code (an AI coding assistant), running on
   - The first wording for the savings said the crew would have time for "a longer lunch", which sounded silly when it came up in testing. The AI changed it to say the crew finishes earlier, or can fit in another job when the saving is big enough.
 - **Committed?** yes — "Session 2: route planner with optimizer and technician day with job timers"
 
+### Session 3 — Nov 24 — driver: Nate
+
+- **Goal for this session:** Show the network effect on the site instead of just describing it (the Overflow Network page), add a pricing page with my revenue model, and fix the live site showing an old stylesheet after updates.
+- **Key prompts / decisions I gave the AI:**
+  1. "Let's start session 3."
+  2. My pricing decision: the AI asked what JobRoute should charge and offered four options (two flat plans, a free tier plus a paid plan, one flat price, or a base price plus a per-technician fee). I chose **$29/month, which includes the owner, plus $10/month per extra technician.** My reasoning is in the business case.
+  3. My overflow fee decision: from three options, I chose **10% to the business that passes the job on and 5% to JobRoute**, so the crew that does the job keeps 85%.
+  4. The network effect idea from session 1: if my business can't take a job, it can offer it to another business.
+- **What worked:**
+  - **Network page:** explains the Overflow Network in 4 steps with the 85/10/5 split. A slider changes the number of JobRoute operators in the Moncton area from 1 to 40. With 1 operator nothing works (0% of posted jobs get claimed: the cold-start problem). With 3 it's 23%, with 10 it's about 68%, and with 20 it's 91%, claimed in about 2 hours. A chart shows the curve flattening out, so each new operator adds less once the network is big.
+  - The "Overflow jobs near you" feed grows as the slider goes up: more operators means more jobs to pick up. **Claiming a job adds it to Jordan's schedule and the owner dashboard** at the 85% the crew keeps.
+  - "Pass on one of your jobs" lets you post a real upcoming Harbourview job. Whether it gets claimed depends on the slider, so at 2 operators it usually fails and at 30 it almost always works. This shows the network effect from the side of the person posting.
+  - **Pricing page:** the plan card, a calculator (technicians 0–10) that compares the monthly cost with estimated savings (owner spreadsheet time plus less driving), and an example of the overflow fee split on a $200 job. There's no payment form, on purpose.
+  - Home page now has an Overflow Network teaser card, so a visitor sees the network idea in the first 30 seconds.
+  - Added "?v=3" to the CSS/JS links, so browsers download the newest files after each update.
+- **What broke, and how we fixed it:**
+  - Last night, after pushing session 2, the live Routes page looked broken for a few minutes. The browser was using the old saved stylesheet with the new page. Hard-refreshing fixed it for me, and the "?v=3" version tags fix it for everyone.
+  - While testing, a gutter job I posted was "claimed by Northgate Lawn Crew", but the feed says that company has no ladders. The AI changed it so only the exterior-cleaning companies can claim jobs.
+  - On a phone, the menu now had 7 links and only the first 4 fit. Network, Pricing and About were hidden off the side of the screen. The AI made the menu wrap onto two rows on small screens.
+- **Committed?** yes — "Session 3: Overflow Network simulation, pricing page and cache fix"
+
 ---
 
 ## Things that broke (running list)
@@ -59,6 +80,9 @@ AI tool used to build the site: Claude Code (an AI coding assistant), running on
 | Nov 23 | Preview showed only a giant logo, no styling | Opening index.html directly | Ran a local web server so styles.css loads |
 | Nov 23 | Owner page heading hidden under the header | — | Added a scroll offset in styles.css |
 | Nov 23 | "Optimize route" button wouldn't hide after optimizing | Checked that the code set it to hidden | Button CSS overrode "hidden"; added a rule so hidden always wins |
+| Nov 23 | Live Routes page looked broken right after pushing session 2 | Checked GitHub had the new file (it did) | Browser was using its old saved stylesheet; hard refresh, then added "?v=3" to the file links (Nov 24) |
+| Nov 24 | A lawn company "claimed" a gutter job it couldn't do | — | Only exterior-cleaning companies can claim posted jobs now |
+| Nov 24 | Network, Pricing and About links hidden on phones | — | Menu wraps onto two rows on small screens |
 
 ## What a real version would need
 
@@ -68,6 +92,8 @@ AI tool used to build the site: Claude Code (an AI coding assistant), running on
 | Real logins and roles | Technicians should only see their own jobs and pay; only the owner should see the business's revenue | Medium: a login service (SaaS), roughly a few hundred dollars a month at scale |
 | Real maps and routing | The demo map is drawn by hand and uses straight lines. Real routes need actual roads, bridges, traffic and turn-by-turn directions | Medium: a mapping/routing service (SaaS) that charges per request, so cost grows with every crew and every day |
 | Real job timer on a phone app | Technicians need it on their phone in the truck, working even with bad signal, with times saved to the shared database | Hard: a mobile app (or offline-capable web app) plus testing on many phones |
+| Payments and the automatic 85/10/5 split | Overflow jobs only work if money moves automatically: the customer pays, then the crew, the referring business and JobRoute each get their share | Medium: a payment processor (SaaS) with payouts to many businesses; it takes about 3% per payment, and taxes and refunds get complicated |
+| Trust and safety for overflow jobs | Before handing a customer to another crew, operators need to know that crew is insured, does good work and won't steal the customer. Disputes need someone to sort them out | Hard and ongoing: insurance checks, ratings, rules about who "owns" the customer, and a support person to handle complaints (staff cost, not just software) |
 
 ## Reflection (fill in at the end)
 
