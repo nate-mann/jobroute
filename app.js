@@ -327,6 +327,7 @@
     if (current === "owner") renderOwner();
     if (current === "route") renderRoute(true);
     if (current === "tech") renderTech();
+    if (current === "quote") renderQuote();
     if (current === "network") renderNetwork();
     if (current === "pricing") renderPricing();
 
@@ -496,6 +497,7 @@
     renderKpis();
     renderServiceBars();
     renderTechSplit();
+    renderInbox();
     renderJobs();
   }
 
@@ -514,6 +516,9 @@
   document.getElementById("reset-demo").addEventListener("click", function () {
     jobs = freshJobs();
     storage.remove(JOBS_KEY);
+    quotes = JSON.parse(JSON.stringify(QUOTE_SEED));
+    storage.remove(QUOTES_KEY);
+    document.getElementById("inbox-msg").hidden = true;
     renderOwner();
     showFormMessage("Demo data reset.");
   });
@@ -585,6 +590,271 @@
     const property = byId(PROPERTIES, job.property);
     showFormMessage("Booked: " + byId(SERVICES, job.service).name + " at " + property.address +
       " on " + shortDate(job.date) + " for " + money(price) + ".");
+  });
+
+  // ----------------------------------------------------------
+  // 7b. Instant quotes: the customer page and the owner's inbox.
+  //     The price comes straight from the business's own rates
+  //     (QUOTING in data.js). Requests are saved in this browser only.
+  // ----------------------------------------------------------
+  const QUOTES_KEY = "jobroute.quotes.v1";
+  let quotes = storage.get(QUOTES_KEY, null) || JSON.parse(JSON.stringify(QUOTE_SEED));
+
+  function saveQuotes() {
+    storage.set(QUOTES_KEY, quotes);
+  }
+
+  // Price for a set of services on a home of a given size.
+  // Each line rounds to the nearest $5; 2+ services get the bundle discount.
+  function quoteFor(services, sizeId) {
+    const size = byId(QUOTING.sizes, sizeId) || QUOTING.sizes[1];
+    const discount = services.length >= 2 ? QUOTING.bundleDiscount : 0;
+    const lines = services.map(function (id) {
+      const price = Math.round(QUOTING.rates[id] * size.factor / 5) * 5;
+      return { service: id, price: price, final: Math.round(price * (1 - discount)) };
+    });
+    const subtotal = lines.reduce(function (sum, line) { return sum + line.price; }, 0);
+    const total = lines.reduce(function (sum, line) { return sum + line.final; }, 0);
+    return { lines: lines, subtotal: subtotal, discount: subtotal - total, total: total, size: size };
+  }
+
+  function addDays(iso, days) {
+    const d = new Date(iso + "T12:00:00");
+    d.setDate(d.getDate() + days);
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  // First working day after today where one technician has room for
+  // all the jobs. Picks whoever has the lightest day.
+  function firstOpenDay(jobCount) {
+    for (let n = 1; n < 60; n++) {
+      const day = addDays(DEMO.today, n);
+      if (new Date(day + "T12:00:00").getDay() === 0) continue; // no Sundays
+      const loads = TECHS.map(function (tech) {
+        return {
+          tech: tech.id,
+          count: jobs.filter(function (job) { return job.date === day && job.tech === tech.id; }).length
+        };
+      }).sort(function (a, b) { return a.count - b.count; });
+      if (loads[0].count + jobCount <= QUOTING.jobsPerTechPerDay) return { date: day, tech: loads[0].tech };
+    }
+    return { date: addDays(DEMO.today, 1), tech: TECHS[0].id };
+  }
+
+  function serviceList(ids) {
+    return ids.map(function (id) { return byId(SERVICES, id).name; }).join(" + ");
+  }
+
+  // --- Owner's inbox ---
+  function renderInbox() {
+    const list = document.getElementById("inbox-list");
+    const waiting = quotes.filter(function (q) { return q.status === "new"; });
+    const badge = document.getElementById("inbox-count");
+    badge.textContent = waiting.length ? waiting.length + " new" : "";
+    badge.hidden = !waiting.length;
+
+    // newest first, waiting ones on top, only the last few handled ones
+    const shown = waiting.slice().reverse().concat(
+      quotes.filter(function (q) { return q.status !== "new"; }).slice(-3).reverse()
+    );
+
+    if (!shown.length) {
+      list.replaceChildren(el("li", "feed-empty", "No requests right now. Try sending one from the customer page."));
+      return;
+    }
+
+    list.replaceChildren.apply(list, shown.map(function (q) {
+      const customer = byId(QUOTE_CUSTOMERS, q.customer);
+      const quote = quoteFor(q.services, q.size);
+      const li = el("li", "inbox-item" + (q.status === "new" ? "" : " handled"));
+
+      const top = el("div", "feed-top");
+      top.append(
+        el("strong", "", customer.name + " · " + customer.address + ", " + customer.town),
+        el("span", "feed-price", money(quote.total))
+      );
+      const meta = el("p", "feed-meta", serviceList(q.services) + " · " + quote.size.name + " · " + q.timing);
+      const sent = el("p", "feed-from", q.sent === "Just now" ? "Sent just now" : "Sent today at " + q.sent);
+
+      const bottom = el("div", "feed-bottom inbox-actions");
+      if (q.status === "new") {
+        const book = el("button", "button small", "Book it");
+        book.type = "button";
+        book.addEventListener("click", function () { bookQuote(q); });
+        const pass = el("button", "button small ghost", "Pass to network");
+        pass.type = "button";
+        pass.addEventListener("click", function () { passQuote(q); });
+        const decline = el("button", "row-btn quiet", "Decline");
+        decline.type = "button";
+        decline.addEventListener("click", function () { declineQuote(q); });
+        bottom.append(book, pass, decline);
+      } else if (q.status === "booked") {
+        bottom.append(el("span", "status done", "Booked " + dayName(q.date) + " " + shortDate(q.date) + " with " + byId(TECHS, q.tech).name));
+      } else if (q.status === "passed") {
+        bottom.append(el("span", "status scheduled", "Passed to the Overflow Network"));
+      } else {
+        bottom.append(el("span", "status overdue", "Declined"));
+      }
+
+      li.append(top, meta, sent, bottom);
+      return li;
+    }));
+  }
+
+  function showInboxMessage(text) {
+    const msg = document.getElementById("inbox-msg");
+    msg.textContent = text;
+    msg.hidden = false;
+  }
+
+  function bookQuote(q) {
+    const customer = byId(QUOTE_CUSTOMERS, q.customer);
+    const quote = quoteFor(q.services, q.size);
+    const slot = firstOpenDay(quote.lines.length);
+    let nextId = jobs.reduce(function (max, job) { return Math.max(max, job.id); }, 0) + 1;
+    quote.lines.forEach(function (line) {
+      jobs.push({
+        id: nextId++,
+        date: slot.date,
+        address: customer.address,
+        town: customer.town,
+        service: line.service,
+        tech: slot.tech,
+        status: "scheduled",
+        price: line.final,
+        note: "Online quote"
+      });
+    });
+    q.status = "booked";
+    q.date = slot.date;
+    q.tech = slot.tech;
+    saveJobs();
+    saveQuotes();
+    renderOwner();
+    showInboxMessage("Booked " + customer.name + " for " + dayName(slot.date) + " " + shortDate(slot.date) +
+      " with " + byId(TECHS, slot.tech).name + ", the first day with room. " + quote.lines.length + " job" +
+      (quote.lines.length === 1 ? "" : "s") + " (" + money(quote.total) + ") added to the list below.");
+  }
+
+  function passQuote(q) {
+    const customer = byId(QUOTE_CUSTOMERS, q.customer);
+    const quote = quoteFor(q.services, q.size);
+    q.status = "passed";
+    saveQuotes();
+    renderInbox();
+    showInboxMessage("Posted to the Overflow Network. If a nearby crew takes it, " + customer.name +
+      " still gets served and you earn " + money(quote.total * NETWORK.split.sender) + " (10%).");
+  }
+
+  function declineQuote(q) {
+    q.status = "declined";
+    saveQuotes();
+    renderInbox();
+    showInboxMessage("Declined. " + byId(QUOTE_CUSTOMERS, q.customer).name + " gets a polite “not this time” message.");
+  }
+
+  // --- Customer page ---
+  let quoteBuilt = false;
+
+  function buildQuoteForm() {
+    fillSelect(document.getElementById("q-customer"), QUOTE_CUSTOMERS, function (c) {
+      return c.name + " · " + c.address + ", " + c.town;
+    });
+    const timing = document.getElementById("q-timing");
+    timing.replaceChildren.apply(timing, QUOTING.timings.map(function (t) {
+      const option = el("option", "", t);
+      option.value = t;
+      return option;
+    }));
+
+    const services = document.getElementById("q-services");
+    services.replaceChildren.apply(services, SERVICES.map(function (service, i) {
+      const label = el("label", "pick");
+      const box = el("input");
+      box.type = "checkbox";
+      box.name = "q-service";
+      box.value = service.id;
+      box.checked = i === 0;
+      const text = el("span");
+      text.append(el("strong", "", service.name), el("span", "muted small", "from " + money(Math.round(QUOTING.rates[service.id] * QUOTING.sizes[0].factor / 5) * 5)));
+      label.append(box, text);
+      return label;
+    }));
+
+    const sizes = document.getElementById("q-sizes");
+    sizes.replaceChildren.apply(sizes, QUOTING.sizes.map(function (size) {
+      const label = el("label", "pick");
+      const radio = el("input");
+      radio.type = "radio";
+      radio.name = "q-size";
+      radio.value = size.id;
+      radio.checked = size.id === "medium";
+      label.append(radio, el("span", "", size.name));
+      return label;
+    }));
+
+    document.getElementById("q-business").textContent = DEMO.business;
+    document.getElementById("quote-form").addEventListener("change", renderQuote);
+    document.getElementById("quote-form").addEventListener("submit", function (event) { event.preventDefault(); });
+    quoteBuilt = true;
+  }
+
+  function currentQuoteInput() {
+    return {
+      customer: document.getElementById("q-customer").value,
+      services: Array.prototype.map.call(document.querySelectorAll("input[name=q-service]:checked"), function (box) { return box.value; }),
+      size: (document.querySelector("input[name=q-size]:checked") || {}).value || "medium",
+      timing: document.getElementById("q-timing").value
+    };
+  }
+
+  function renderQuote() {
+    if (!quoteBuilt) buildQuoteForm();
+    const input = currentQuoteInput();
+    const box = document.getElementById("quote-lines");
+    const send = document.getElementById("quote-send");
+    send.disabled = input.services.length === 0;
+
+    if (!input.services.length) {
+      box.replaceChildren(el("p", "muted", "Pick at least one service to see a price."));
+      return;
+    }
+    const quote = quoteFor(input.services, input.size);
+    const rows = quote.lines.map(function (line) {
+      const row = el("div", "price-line");
+      row.append(el("span", "", byId(SERVICES, line.service).name), el("strong", "", money(line.price)));
+      return row;
+    });
+    if (quote.discount > 0) {
+      const row = el("div", "price-line save");
+      row.append(el("span", "", "Bundle discount (" + Math.round(QUOTING.bundleDiscount * 100) + "% off 2+ services)"), el("strong", "", "−" + money(quote.discount)));
+      rows.push(row);
+    } else {
+      rows.push(el("p", "muted small quote-tip", "Tip: add a second service to save " + Math.round(QUOTING.bundleDiscount * 100) + "%."));
+    }
+    const total = el("div", "price-line total");
+    total.append(el("span", "", "Your price"), el("strong", "quote-total", money(quote.total)));
+    rows.push(total, el("p", "muted small", quote.size.name + " · taxes extra · price confirmed after the first visit"));
+    box.replaceChildren.apply(box, rows);
+  }
+
+  document.getElementById("quote-send").addEventListener("click", function () {
+    const input = currentQuoteInput();
+    if (!input.services.length) return;
+    input.id = "q" + Date.now();
+    input.sent = "Just now";
+    input.status = "new";
+    quotes.push(input);
+    saveQuotes();
+
+    const customer = byId(QUOTE_CUSTOMERS, input.customer);
+    const result = document.getElementById("quote-result");
+    result.className = "post-result good";
+    result.replaceChildren(
+      document.createTextNode("✓ Sent! " + DEMO.owner + " at " + DEMO.business + " can book it in one tap. " +
+        "In a real version, " + customer.name + " would get a text when it's booked. "),
+      (function () { const link = el("a", "", "See it as the owner →"); link.href = "#owner"; return link; })()
+    );
   });
 
   // ----------------------------------------------------------
@@ -1487,7 +1757,7 @@
   });
 
   // ----------------------------------------------------------
-  // 12. Guided tour: a 9-step walk through the demo. Each step opens
+  // 12. Guided tour: a 10-step walk through the demo. Each step opens
   //     a view, sets it up, and outlines the part being explained.
   // ----------------------------------------------------------
   function tourRouteSaving() {
@@ -1543,6 +1813,14 @@
       text: function () {
         return "Each technician sees their stops in route order with arrival times. “Start job” runs a timer, " +
           "“Finish job” logs the time and pay, and the owner's dashboard updates by itself.";
+      }
+    },
+    {
+      view: "quote", target: "#quote-summary",
+      title: "The customer's side: instant quotes",
+      text: function () {
+        return "A customer picks their services and home size and gets a price on the spot, from the owner's own rates. " +
+          "The request lands in the owner's inbox, where “Book it” puts it on the first day a crew has room.";
       }
     },
     {

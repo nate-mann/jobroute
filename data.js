@@ -144,3 +144,35 @@ const PRICING = {
   routeKmSavedPerCrewDay: 12,
   workDaysPerMonth: 22
 };
+
+// ------------------------------------------------------------
+// INSTANT QUOTES — the customer page. JobRoute prices the job
+// right away from the business's own rates, so the owner doesn't
+// have to answer every quote request by email.
+// ------------------------------------------------------------
+const QUOTING = {
+  // Harbourview's price for each service on a typical two-storey home
+  rates: { windows: 180, gutters: 140, wash: 260, deck: 220 },
+  sizes: [
+    { id: "small",  name: "Bungalow or small home", factor: 0.8 },
+    { id: "medium", name: "Two-storey home",        factor: 1 },
+    { id: "large",  name: "Large home (3 storeys or 3,000+ sq ft)", factor: 1.35 }
+  ],
+  bundleDiscount: 0.10,  // 10% off when a customer books 2 or more services
+  timings: ["As soon as possible", "Next week", "Within 2 weeks", "I'm flexible"],
+  jobsPerTechPerDay: 5   // used to find the first day with room when booking
+};
+
+// Made-up customers to pick from on the quote page (first names only,
+// fake streets). There are no boxes for real names or phone numbers.
+const QUOTE_CUSTOMERS = [
+  { id: "c1", name: "Alex",   address: "5 Heronview Way",    town: "Riverview" },
+  { id: "c2", name: "Priya",  address: "212 Saltgrass Rd",   town: "Dieppe" },
+  { id: "c3", name: "Marc",   address: "8 Brookmere Dr",     town: "Moncton" },
+  { id: "c4", name: "Morgan", address: "33 Lanternhill Terr", town: "Moncton" }
+];
+
+// One request already waiting when the demo starts.
+const QUOTE_SEED = [
+  { id: "q1", customer: "c4", services: ["windows", "gutters"], size: "medium", timing: "Within 2 weeks", sent: "7:42 am", status: "new" }
+];

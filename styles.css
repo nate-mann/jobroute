@@ -21,6 +21,54 @@
   --bad-soft: #fdecec;
   --radius: 12px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --on-brand: #ffffff;     /* text on teal buttons */
+  --map-land: #eef3ee;
+  --map-road: #ffffff;
+  --map-water: #b9d8ec;
+  --map-label: #8a979f;
+  --map-river-label: #6f9ab5;
+  --map-other: #b7c0c6;
+  --route-red: #dc2626;
+  --warn-bg: #fff7e6;
+  --warn-text: #8a5a00;
+  --amber-strong: #b45309;
+  --done-bg: #fbfdfb;
+  --shadow: rgba(16, 24, 32, 0.22);
+  color-scheme: light dark;
+}
+
+/* Dark mode: follows the phone or computer's own setting */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand: #2dd4bf;
+    --brand-dark: #5eead4;
+    --brand-soft: #12332f;
+    --accent: #fbbf24;
+    --text: #e6edf3;
+    --muted: #9aa7b3;
+    --background: #0e1316;
+    --surface: #172026;
+    --border: #2a363f;
+    --good: #4ade80;
+    --good-soft: #12301e;
+    --info: #9bb8ff;
+    --info-soft: #1a2647;
+    --bad: #f87171;
+    --bad-soft: #3a1b1b;
+    --on-brand: #04211e;
+    --map-land: #1b2924;
+    --map-road: #2b3a35;
+    --map-water: #1e4a62;
+    --map-label: #7f8d97;
+    --map-river-label: #7aa6c2;
+    --map-other: #56636c;
+    --route-red: #f87171;
+    --warn-bg: #33270e;
+    --warn-text: #f5c66b;
+    --amber-strong: #f59e0b;
+    --done-bg: #152019;
+    --shadow: rgba(0, 0, 0, 0.55);
+  }
 }
 
 * { box-sizing: border-box; }
@@ -121,7 +169,7 @@ h2, h3 { line-height: 1.3; }
   border: 1px solid var(--brand);
   border-radius: var(--radius);
   background: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
   font: inherit;
   font-weight: 600;
   text-decoration: none;
@@ -298,7 +346,7 @@ h2, h3 { line-height: 1.3; }
   color: var(--muted);
   cursor: pointer;
 }
-.chip[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+.chip[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
 
 .table-wrap { overflow-x: auto; }
 table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
@@ -414,17 +462,17 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .route-map { display: block; width: 100%; height: auto; border-radius: 10px; }
 .map-note { margin: 8px 2px 0; }
 
-.map-land { fill: #eef3ee; }
-.map-road { fill: none; stroke: #ffffff; stroke-width: 1.2; }
+.map-land { fill: var(--map-land); }
+.map-road { fill: none; stroke: var(--map-road); stroke-width: 1.2; }
 .map-road.major { stroke-width: 2.2; }
-.map-water { fill: none; stroke: #b9d8ec; stroke-width: 4.5; stroke-linecap: round; }
-.map-label { font-size: 3px; font-weight: 700; letter-spacing: 0.4px; fill: #8a979f; }
-.map-river-label { font-size: 2.4px; font-style: italic; fill: #6f9ab5; }
-.map-other { fill: #b7c0c6; }
+.map-water { fill: none; stroke: var(--map-water); stroke-width: 4.5; stroke-linecap: round; }
+.map-label { font-size: 3px; font-weight: 700; letter-spacing: 0.4px; fill: var(--map-label); }
+.map-river-label { font-size: 2.4px; font-style: italic; fill: var(--map-river-label); }
+.map-other { fill: var(--map-other); }
 .map-route-shadow { fill: none; stroke: rgba(15, 118, 110, 0.12); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
 .map-route {
   fill: none;
-  stroke: #dc2626;
+  stroke: var(--route-red);
   stroke-width: 1.1;
   stroke-linejoin: round;
   stroke-linecap: round;
@@ -440,7 +488,7 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .map-pin.done text { fill: var(--good); }
 .map-pin circle, .map-pin text { transition: fill 0.25s, stroke 0.25s; }
 .map-pin.visited circle { fill: var(--brand); stroke: var(--brand-dark); }
-.map-pin.visited text { fill: #fff; }
+.map-pin.visited text { fill: var(--on-brand); }
 
 /* Route map: the clock that rides along with the truck */
 .map-actions { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -489,7 +537,7 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .savings.is-active { border-style: solid; border-color: var(--brand); background: var(--brand-soft); }
 .savings .eyebrow { margin-bottom: 4px; }
 .savings-big { font-size: 1.5rem; font-weight: 750; margin: 0 0 6px !important; color: var(--brand); }
-.savings-big.muted-big { color: #dc2626; }
+.savings-big.muted-big { color: var(--route-red); }
 
 .stop-list { margin: 10px 0 0; padding-left: 22px; }
 .stop-list li { padding: 6px 0; border-bottom: 1px solid var(--border); }
@@ -505,8 +553,8 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
   margin: 0 0 16px;
   padding: 10px 14px;
   border-radius: 10px;
-  background: #fff7e6;
-  color: #8a5a00;
+  background: var(--warn-bg);
+  color: var(--warn-text);
   font-size: 0.88rem;
 }
 .tech-stops { list-style: none; margin: 0; padding: 0; }
@@ -517,7 +565,7 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
   align-items: center;
 }
 .tech-stop.running { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
-.tech-stop.done { background: #fbfdfb; }
+.tech-stop.done { background: var(--done-bg); }
 .tech-stop.done .stop-head strong { color: var(--muted); }
 .stop-badge {
   width: 36px; height: 36px; border-radius: 50%;
@@ -531,7 +579,7 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .stop-meta { margin: 2px 0 2px !important; font-size: 0.9rem; color: var(--muted); }
 .stop-pay { margin: 0 !important; font-size: 0.88rem; font-weight: 600; color: var(--brand); }
 .stop-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
-.timer { font-size: 1.6rem; font-weight: 750; font-variant-numeric: tabular-nums; color: #b45309; line-height: 1; }
+.timer { font-size: 1.6rem; font-weight: 750; font-variant-numeric: tabular-nums; color: var(--amber-strong); line-height: 1; }
 .button.finish { background: #b45309; border-color: #b45309; }
 .button.finish:hover { background: #92400e; border-color: #92400e; }
 .button:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -568,7 +616,7 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
   margin: 4px 0 6px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-brand);
 }
 .split-bar span { display: grid; place-items: center; }
 .sb-doer { background: var(--brand); }
@@ -596,7 +644,7 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .net-link { stroke: var(--brand); stroke-width: 0.45; stroke-opacity: 0.35; }
 .net-op circle {
   fill: var(--brand);
-  stroke: #fff;
+  stroke: var(--surface);
   stroke-width: 0.7;
   transform-box: fill-box;
   transform-origin: center;
@@ -607,7 +655,7 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .net-op.on circle { transform: scale(1); opacity: 1; }
 .net-op.you circle { fill: var(--text); }
 .net-you-label { font-size: 3px; font-weight: 750; fill: var(--text); }
-.net-job { fill: var(--accent); stroke: #fff; stroke-width: 0.4; }
+.net-job { fill: var(--accent); stroke: var(--surface); stroke-width: 0.4; }
 .net-ping {
   fill: none;
   stroke-width: 0.8;
@@ -770,6 +818,81 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
   .net-bottom { grid-template-columns: 1fr; }
 }
 
+/* ---------- Quote requests (owner inbox) ---------- */
+.inbox { margin-top: 16px; }
+.count-badge {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #1f1300;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.inbox-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.inbox-item { padding: 12px 0; border-top: 1px solid var(--border); }
+.inbox-item:first-child { border-top: none; padding-top: 4px; }
+.inbox-item.handled { opacity: 0.7; }
+.inbox-actions { justify-content: flex-start; }
+.row-btn.quiet { border-color: var(--border); color: var(--muted); }
+.row-btn.quiet:hover { background: var(--background); color: var(--text); }
+
+/* ---------- Customer quote page ---------- */
+.quote-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+.quote-layout > .card + .card { margin-top: 0; }
+.quote-form fieldset { border: none; margin: 0 0 18px; padding: 0; min-width: 0; }
+.quote-form fieldset:last-child { margin-bottom: 0; }
+.quote-form legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
+.quote-form select {
+  font: inherit;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+}
+.pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pick-list { display: grid; gap: 8px; }
+.pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.pick:hover { border-color: var(--brand); }
+.pick:has(input:checked) { border-color: var(--brand); background: var(--brand-soft); }
+.pick input { accent-color: var(--brand); width: 18px; height: 18px; margin: 0; flex: none; }
+.pick strong { display: block; font-size: 0.95rem; }
+.pick .muted { display: block; }
+.quote-summary { position: sticky; top: 130px; }
+.quote-lines { margin: 10px 0 14px; }
+.quote-total { font-size: 1.6rem; color: var(--brand); }
+.quote-tip { margin: 8px 0 0 !important; }
+.quote-send { width: 100%; }
+.quote-lines .price-line.total { align-items: center; }
+
+@media (max-width: 860px) {
+  .quote-layout { grid-template-columns: 1fr; }
+  .quote-summary { position: static; }
+}
+@media (max-width: 420px) {
+  .pick-grid { grid-template-columns: 1fr; }
+}
+
 /* ---------- Guided tour ---------- */
 .tour {
   position: fixed;
@@ -781,7 +904,7 @@ table.jobs { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: 0 12px 36px rgba(16, 24, 32, 0.22);
+  box-shadow: 0 12px 36px var(--shadow);
 }
 .tour-top { display: flex; align-items: center; justify-content: space-between; }
 .tour-step { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--brand); }

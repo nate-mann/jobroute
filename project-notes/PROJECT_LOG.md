@@ -90,6 +90,26 @@ On Nov 24 I emailed my professor to ask if using Claude Code instead of Copilot 
   - On a phone, the tour card covered the bottom half of the map it was talking about. The tour now outlines just the map on those steps, so it fits above the card.
 - **Committed?** yes — "Session 4: live network map, truck route animation and guided tour"
 
+### Session 5 — Nov 25 — driver: Nate
+
+- **Goal for this session:** Add the customer's side of JobRoute (an instant quote page that feeds the owner's dashboard), and finish the polish from yesterday's list with dark mode.
+- **Key prompts / decisions I gave the AI:**
+  1. "Let's start session 5." The plan from yesterday was the 4th and 5th upgrades on the AI's list: a customer quote request, and polish.
+- **What worked:**
+  - **Customer page (new "Customer" tab and a third role card on the home page):** a customer picks who they are (from made-up demo customers), the services they want, the size of the home and when they'd like it done. The price shows up instantly from the business's own rates, with 10% off for 2 or more services. "Send my request" sends it to the owner's dashboard. There are no boxes for real names, emails or phone numbers, on purpose.
+  - **Quote requests inbox on the owner dashboard:** each request shows the customer, the services, the home size and the price, with three buttons:
+    - **Book it:** JobRoute finds the first day a technician has room and adds the jobs to the schedule. Example: Priya's windows + gutters ($288) got booked Thursday Jul 16 with Jordan, and the "Still booked" total went up.
+    - **Pass to network:** sends it to the Overflow Network, so the business still earns 10% if it's booked solid.
+    - **Decline.**
+  - One request (Morgan, sent at 7:42 am) is already waiting when the demo starts, so the inbox isn't empty. "Reset demo data" puts it back.
+  - The guided tour now has 10 steps, with a new one for the customer page.
+  - **Dark mode:** if someone's phone or computer is set to dark mode, the whole site switches to dark colours, maps included. To make this work, the AI moved about 20 colours that were typed straight into the CSS into named colour settings, so they can change in one place.
+  - Changed "?v=4" to "?v=5" so browsers load the new files.
+- **What broke, and how we fixed it:**
+  - Nothing big broke this time. The "Your price" total wasn't lined up with its label, which was a one-line CSS fix.
+  - Testing dark mode showed the maps were the hardest part, because their colours were typed straight into the code instead of using the colour settings. Those were the ones that had to move first.
+- **Committed?** yes — "Session 5: customer instant quotes, owner quote inbox and dark mode"
+
 ---
 
 ## Things that broke (running list)
@@ -107,6 +127,7 @@ On Nov 24 I emailed my professor to ask if using Claude Code instead of Copilot 
 | Nov 24 | Truck's clock box covered a stop on the map | — | Moved the clock to an empty corner and moved the Riverview label |
 | Nov 24 | Network map dots on top of town names | — | Dots now avoid the labels |
 | Nov 24 | Tour card covered the map on phones | Scrolling the page | Tour outlines just the map on those steps so both fit on screen |
+| Nov 25 | Map and some colours couldn't switch to dark mode | — | Moved colours typed into the CSS into named colour settings |
 
 ## What a real version would need
 

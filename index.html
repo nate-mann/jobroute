@@ -6,8 +6,8 @@
   <title>JobRoute</title>
   <meta name="description" content="JobRoute: routing and job management for small service businesses. A student startup prototype for BSAD 281.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Ccircle cx='9' cy='23' r='3.5' fill='%23fff'/%3E%3Ccircle cx='23' cy='9' r='3.5' fill='%23fbbf24'/%3E%3C/svg%3E">
-  <!-- "?v=4" makes browsers download the newest file after each update -->
-  <link rel="stylesheet" href="styles.css?v=4">
+  <!-- "?v=5" makes browsers download the newest file after each update -->
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 
@@ -29,6 +29,7 @@
       <a href="#owner">Owner</a>
       <a href="#route">Routes</a>
       <a href="#tech">Technician</a>
+      <a href="#quote">Customer</a>
       <a href="#network">Network</a>
       <a href="#pricing">Pricing</a>
       <a href="#about">About</a>
@@ -121,6 +122,14 @@
           </span>
           <span class="role-go" aria-hidden="true">→</span>
         </a>
+        <a class="card role-card" href="#quote">
+          <span class="role-icon" aria-hidden="true">🏡</span>
+          <span>
+            <strong>I'm a customer</strong>
+            <span class="muted">Gets an instant price and books a cleaning</span>
+          </span>
+          <span class="role-go" aria-hidden="true">→</span>
+        </a>
       </div>
     </section>
 
@@ -141,6 +150,16 @@
       </div>
 
       <div class="kpis" id="kpis"></div>
+
+      <div class="card inbox" id="quote-inbox">
+        <div class="table-head">
+          <h2>Quote requests <span class="count-badge" id="inbox-count"></span></h2>
+          <a class="small" href="#quote">Open the customer page →</a>
+        </div>
+        <p class="muted small">Customers get a price on the spot from your rates. You just pick: book it, or pass on it.</p>
+        <ul class="inbox-list" id="inbox-list"></ul>
+        <p class="notice" id="inbox-msg" role="status" hidden></p>
+      </div>
 
       <div class="two-col">
         <div class="card">
@@ -276,6 +295,59 @@
       <p class="demo-note">⏱ Demo clock: timers run 60× faster, so a 75-minute job takes about 75 seconds. Finished jobs show up on the owner dashboard right away.</p>
 
       <ol class="tech-stops" id="tech-stops"></ol>
+    </section>
+
+    <!-- =======================================================
+         VIEW 4b: CUSTOMER — instant quote. The request goes to the
+         owner's dashboard. Nothing is sent anywhere.
+         ======================================================= -->
+    <section id="quote" data-view hidden>
+      <div class="view-head">
+        <div>
+          <p class="eyebrow">Customer view · Instant quote</p>
+          <h1>Get a price in 30 seconds</h1>
+          <p class="muted">The page a JobRoute business links from its website or Facebook page. The customer sees a price right away, and the request lands on the owner's dashboard, ready to book.</p>
+        </div>
+      </div>
+
+      <p class="demo-note">Demo only: pick one of the made-up customers. Nothing is sent anywhere, and there are no boxes for real names, emails or phone numbers on purpose.</p>
+
+      <div class="quote-layout">
+        <form class="card quote-form" id="quote-form">
+          <fieldset>
+            <legend>1. Who's asking? <span class="muted small">(demo customer)</span></legend>
+            <select id="q-customer" aria-label="Demo customer"></select>
+          </fieldset>
+          <fieldset>
+            <legend>2. What do you need?</legend>
+            <div class="pick-grid" id="q-services"></div>
+          </fieldset>
+          <fieldset>
+            <legend>3. How big is the home?</legend>
+            <div class="pick-list" id="q-sizes"></div>
+          </fieldset>
+          <fieldset>
+            <legend>4. When would you like it done?</legend>
+            <select id="q-timing" aria-label="Timing"></select>
+          </fieldset>
+        </form>
+
+        <div class="card quote-summary" id="quote-summary">
+          <p class="eyebrow">Your price from <span id="q-business"></span></p>
+          <div class="quote-lines" id="quote-lines"></div>
+          <button type="button" class="button quote-send" id="quote-send">Send my request</button>
+          <div class="post-result" id="quote-result" role="status"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Why this matters to the owner</h2>
+        <ul class="ticks">
+          <li><strong>No more quoting at night:</strong> a quote request usually means emails back and forth after a full day of work. Here the price comes from the owner's own rates, instantly.</li>
+          <li><strong>Faster answer, more jobs won:</strong> a customer with a price in hand is more likely to book than one waiting a day for a reply.</li>
+          <li><strong>One tap to book:</strong> the owner presses "Book it" and JobRoute finds the first day a crew has room. If the crew is full, the job can go to the Overflow Network.</li>
+        </ul>
+      </div>
     </section>
 
     <!-- =======================================================
@@ -468,7 +540,7 @@
   </footer>
 
   <!-- Scripts load in this order: data first, then the code that uses it. -->
-  <script src="data.js?v=4"></script>
-  <script src="app.js?v=4"></script>
+  <script src="data.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
