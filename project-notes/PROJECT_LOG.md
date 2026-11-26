@@ -128,6 +128,7 @@ On Nov 24 I emailed my professor to ask if using Claude Code instead of Copilot 
 | Nov 24 | Network map dots on top of town names | — | Dots now avoid the labels |
 | Nov 24 | Tour card covered the map on phones | Scrolling the page | Tour outlines just the map on those steps so both fit on screen |
 | Nov 25 | Map and some colours couldn't switch to dark mode | — | Moved colours typed into the CSS into named colour settings |
+| Nov 26 | Technician page went blank after the owner clicked "Mark done" on one of today's jobs | Final check before submitting: asked the AI to click every button on every page | The page expected start and stop times that only the job timer records. Now those jobs say "marked done by the owner" |
 
 ## What a real version would need
 

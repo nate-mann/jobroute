@@ -1218,7 +1218,9 @@
       const meta = el("p", "stop-meta");
       meta.textContent = service.name + " · " +
         (state === "done"
-          ? niceTime(toMin(job.start)) + "–" + niceTime(toMin(job.end)) + " (" + duration(stop.length) + ")"
+          ? (job.start && job.end
+            ? niceTime(toMin(job.start)) + "–" + niceTime(toMin(job.end)) + " (" + duration(stop.length) + ")"
+            : "marked done by the owner")
           : "arrive ~" + niceTime(stop.arrive) + " · about " + duration(plannedMinutes(job)) +
             " · " + stop.km.toFixed(1) + " km drive");
       body.append(head, meta, el("p", "stop-pay", payText(job, tech)));
