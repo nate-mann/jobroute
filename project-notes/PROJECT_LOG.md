@@ -140,8 +140,18 @@ On Nov 24 I emailed my professor to ask if using Claude Code instead of Copilot 
 | Payments and the automatic 85/10/5 split | Overflow jobs only work if money moves automatically: the customer pays, then the crew, the referring business and JobRoute each get their share | Medium: a payment processor (SaaS) with payouts to many businesses; it takes about 3% per payment, and taxes and refunds get complicated |
 | Trust and safety for overflow jobs | Before handing a customer to another crew, operators need to know that crew is insured, does good work and won't steal the customer. Disputes need someone to sort them out | Hard and ongoing: insurance checks, ratings, rules about who "owns" the customer, and a support person to handle complaints (staff cost, not just software) |
 
-## Reflection (fill in at the end)
+## Reflection
 
-1. What surprised you most about building software with AI?
-2. Which parts were easy, and which were hard? Why do you think that is?
-3. If a competitor had the same AI tool, how long would it take them to copy your site?
+**1. What surprised you most about building software with AI?**
+
+What surprised me most was how much constant checking the AI still needed. I built the whole JobRoute site in five sessions without writing a single line of code, and it was fast. But the AI never told me when something was wrong, because as far as the code was concerned, nothing was. At one point a lawn care company "claimed" a gutter cleaning job on the network. The code worked fine, but anyone in this industry would know that makes no sense. I only caught it by prompting AI to test the site for errors. Fast doesn't mean finished.
+
+**2. Which parts were easy, and which were hard? Why do you think that is?**
+
+The easy part was the business side, because I already live it every day running Maritime Shine. I didn't have to think hard about what to charge: $29 a month plus $10 per technician. The 10% and 5% overflow split came just as quickly, and so did deciding which features a cleaning owner actually cares about. I could also fill the site with real details from my own business instead of making them up.
+
+The hard part was knowing exactly what to ask for. Going in, I knew that the more specific my prompts were, the better the output would be. What I learned is that being specific isn't enough. You have to give it step-by-step instructions in a clear order, keep checking its work, and ask it to look for its own errors. The lawn company bug is a good example. The AI didn't know a lawn crew wouldn't take a gutter job until I spelled out the rule. It's great at building, but it only knows what I put into words, and a lot of what I know about this business I'd never had to explain to anyone before.
+
+**3. If a competitor had the same AI tool, how long would it take them to copy your site?**
+
+About a weekend, which is the same answer I gave in my business case, and my own experience backs that up. This summer I was recovering from hip surgery and couldn't be on the job site for Maritime Shine, so I spent two weeks building a similar app. The results weren't as good, but I learned how to host an app and use Supabase. This time it only took five sessions, because I knew the tools and how to prompt. Someone with the same AI tool, copying a site that already exists, could get there in a weekend. What they can't copy is everything behind it: the three owners I know who would join on day one, the local price and job data that builds up as crews use the app, and the fact that I run an exterior cleaning company myself. The site is the easy part to copy. The business isn't.
