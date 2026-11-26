@@ -1,7 +1,9 @@
 # Project log
 
 **Name:** Nate
+
 **Startup name:** JobRoute
+
 **Live site link:** https://nate-mann.github.io/jobroute/
 
 AI tool used to build the site: Claude Code (an AI coding assistant), running on my Mac. I described what I wanted and checked the results; it wrote the HTML, CSS and JavaScript. I used GitHub Desktop to push commits to GitHub.
