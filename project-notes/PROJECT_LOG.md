@@ -150,7 +150,7 @@ What surprised me most was how much constant checking the AI still needed. I bui
 
 The easy part was the business side, because I already live it every day running Maritime Shine. I didn't have to think hard about what to charge: $29 a month plus $10 per technician. The 10% and 5% overflow split came just as quickly, and so did deciding which features a cleaning owner actually cares about. I could also fill the site with real details from my own business instead of making them up.
 
-The hard part was knowing exactly what to ask for. Going in, I knew that the more specific my prompts were, the better the output would be. What I learned is that being specific isn't enough. You have to give it step-by-step instructions in a clear order, keep checking its work, and ask it to look for its own errors. The lawn company bug is a good example. The AI didn't know a lawn crew wouldn't take a gutter job until I spelled out the rule. It's great at building, but it only knows what I put into words, and a lot of what I know about this business I'd never had to explain to anyone before.
+The hard part was knowing exactly what to ask for. Going in, I knew that the more specific my prompts were, the better the output would be. What I learned is that being specific isn't enough. You have to give it step-by-step instructions in a clear order, keep checking its work, and ask it to look for its own errors. The lawn company bug is a good example. The AI found the bug, but only because I told it to look. It's great at building, but it only knows what I put into words, and a lot of what I know about this business I'd never had to explain to anyone before.
 
 **3. If a competitor had the same AI tool, how long would it take them to copy your site?**
 
